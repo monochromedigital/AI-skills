@@ -19,8 +19,8 @@ Each folder under `skills/` is a self-contained skill: a `SKILL.md` with YAML fr
 **Claude Code / Cowork (personal)** — clone and symlink or copy into your skills directory:
 
 ```bash
-git clone https://github.com/monochromedigital/skills.git
-cp -r skills/skills/website-assessment ~/.claude/skills/
+git clone https://github.com/monochromedigital/AI-skills.git
+cp -r AI-skills/skills/website-assessment ~/.claude/skills/
 ```
 
 **Per-project** — put it under `.claude/skills/` in the repo you're working in, and it becomes available to anyone working on that project.
