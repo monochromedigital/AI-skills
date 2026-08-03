@@ -1,0 +1,157 @@
+{
+  "_comment": "Crackwits Website UX/UI Assessment deck tokens. Colours sampled directly from the reference slides. Change values here only - every script reads from this file.",
+  "agency": {
+    "name": "Crackwits",
+    "footer_left": "Crackwits \u00a9 {year}. All Rights Reserved",
+    "footer_right": "Website UX/UI Assessment"
+  },
+  "slide": {
+    "width_px": 3840,
+    "height_px": 2160,
+    "aspect": "16:9"
+  },
+  "colors": {
+    "background": "#312F31",
+    "panel": "#FFFFFF",
+    "card": "#F8F7F8",
+    "eyebrow": "#1E8FD9",
+    "title": "#FFFFFF",
+    "body": "#312F31",
+    "body_muted": "#636163",
+    "marker": "#866FBC",
+    "marker_text": "#FFFFFF",
+    "tag_text": "#FFFFFF",
+    "footer": "#8A888A",
+    "rule": "#E5E5E5"
+  },
+  "categories": {
+    "Copy / Content": {
+      "color": "#1E8FD9",
+      "key": "copy",
+      "summary_order": 1
+    },
+    "UX Design": {
+      "color": "#DF6630",
+      "key": "ux",
+      "summary_order": 2
+    },
+    "UI Design": {
+      "color": "#5C8B63",
+      "key": "ui",
+      "summary_order": 3
+    },
+    "Development": {
+      "color": "#866FBC",
+      "key": "dev",
+      "summary_order": 4
+    },
+    "SEO": {
+      "color": "#D7586C",
+      "key": "seo",
+      "summary_order": 5
+    },
+    "Accessibility": {
+      "color": "#7D797E",
+      "key": "a11y",
+      "summary_order": 6
+    },
+    "CRO": {
+      "color": "#2E8F86",
+      "key": "cro",
+      "summary_order": 7
+    }
+  },
+  "severity": {
+    "Critical": {
+      "color": "#D7586C",
+      "weight": 3
+    },
+    "Moderate": {
+      "color": "#DF6630",
+      "weight": 2
+    },
+    "Minor": {
+      "color": "#7D797E",
+      "weight": 1
+    }
+  },
+  "type": {
+    "eyebrow": {
+      "font": "Urbanist",
+      "size_pt": 11,
+      "weight": "Regular"
+    },
+    "title": {
+      "font": "Urbanist",
+      "size_pt": 24,
+      "weight": "Light"
+    },
+    "finding_body": {
+      "font": "Urbanist",
+      "size_pt": 8.5,
+      "weight": "Regular"
+    },
+    "finding_bold": {
+      "font": "Urbanist",
+      "size_pt": 8.5,
+      "weight": "SemiBold"
+    },
+    "tag": {
+      "font": "Urbanist",
+      "size_pt": 6,
+      "weight": "Medium"
+    },
+    "marker": {
+      "font": "Urbanist",
+      "size_pt": 5.5,
+      "weight": "Medium"
+    },
+    "stat_number": {
+      "font": "Urbanist",
+      "size_pt": 20,
+      "weight": "Light"
+    },
+    "footer": {
+      "font": "Urbanist",
+      "size_pt": 6.5,
+      "weight": "Regular"
+    }
+  },
+  "layout": {
+    "_comment": "Fractions of slide width/height, measured from the reference slides.",
+    "eyebrow": {
+      "x": 0.058,
+      "y": 0.1
+    },
+    "title": {
+      "x": 0.058,
+      "y": 0.135
+    },
+    "panel": {
+      "x": 0.056,
+      "y": 0.244,
+      "w": 0.344,
+      "h": 0.67
+    },
+    "panel_radius": 0.018,
+    "panel_pad": 0.014,
+    "card_radius": 0.008,
+    "card_gap": 0.006,
+    "card_pad_x": 0.016,
+    "card_pad_y": 0.01,
+    "device": {
+      "x": 0.36,
+      "y": 0.1,
+      "w": 0.585,
+      "h": 0.8
+    },
+    "device_radius": 0.016,
+    "device_bezel": 0.008,
+    "marker_d": 0.0125,
+    "footer_y": 0.955,
+    "footer_l_x": 0.012,
+    "footer_r_x": 0.988,
+    "tag_h_in": 0.145,
+    "line_pitch_ratio": 1.42
+  }
+}

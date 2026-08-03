@@ -1,0 +1,13 @@
+{
+  "name": "Crackwits Website Assessment",
+  "id": "crackwits-website-assessment",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "reasoning": "Everything is loaded from local files the user drops into the plugin window. The plugin never makes network requests."
+  }
+}

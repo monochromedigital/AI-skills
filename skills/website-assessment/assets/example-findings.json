@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "client": "Embassy of Lebanon — United Arab Emirates",
+    "url": "https://lebanonembassy.ae",
+    "audited_on": "2026-08-03",
+    "audience": "prospect",
+    "show_severity": true,
+    "priority_slide": true
+  },
+  "slides": [
+    {
+      "page": "Landing Page",
+      "section": "Nav Bar",
+      "framed": "framed/home__00-nav-bar.png",
+      "screen_rect": {"x": 0.043174880069777585, "y": 0.055400111919418016, "w": 0.9136502398604448, "h": 0.889199776161164},
+      "findings": [
+        {
+          "categories": ["UI Design", "Accessibility"],
+          "severity": "Moderate",
+          "observation": "The green header feels visually heavy and creates a low-contrast navigation area, making the menu harder to read and scan.",
+          "marker": {"x": 0.050, "y": 0.047}
+        },
+        {
+          "categories": ["Accessibility"],
+          "severity": "Critical",
+          "observation": "Red on dark green fails contrast minimum.",
+          "detail": "A combination that fails WCAG contrast requirements. Red on dark green is also a colour-blind failure pattern: users with deuteranopia or protanopia (red-green colour blindness) cannot distinguish the two at all.",
+          "scope": "Applicable on all the website and also on footer",
+          "fix": "Use a light neutral or white active state on the green header, and reserve red for a single accent that never carries meaning on its own.",
+          "marker": {"x": 0.396, "y": 0.042}
+        },
+        {
+          "categories": ["UX Design", "UI Design"],
+          "severity": "Minor",
+          "observation": "The Home button is redundant because the logo already acts as the expected route back to the homepage. Removing it simplifies the navigation and gives more space to higher-value sections.",
+          "principle": "Cognitive Load",
+          "marker": {"x": 0.447, "y": 0.081}
+        },
+        {
+          "categories": ["UX Design", "UI Design", "CRO"],
+          "severity": "Moderate",
+          "observation": "“Contact” is treated as a standard navigation link, even though it is one of the most important user actions on the site. It should stand out more clearly as a primary CTA.",
+          "principle": "Visual Hierarchy",
+          "fix": "Promote Contact to a filled button at the end of the nav so it reads as an action rather than a destination.",
+          "marker": {"x": 0.836, "y": 0.077}
+        },
+        {
+          "categories": ["UX Design"],
+          "severity": "Minor",
+          "observation": "The language option is shown as a standalone button instead of a proper selector, which makes it less scalable and less clear as a language-switching interaction.",
+          "marker": {"x": 0.954, "y": 0.062}
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "image": "framed/home__00-nav-bar.png",
+    "narrative": [
+      "What the site needs is a clearer service experience, stronger content governance, and a more scalable technical foundation.",
+      "Across every page, the same pattern appears: the core structure is there, but the experience does not yet fully support the way people use websites. Users arrive with practical needs, to renew documents, check working hours, contact the embassy, understand requirements, or get urgent support. The site should help them complete those tasks with confidence and minimal confusion.",
+      "The main gaps are around clarity, consistency, and trust. CTAs promise actions that are not actually available, key information is repeated or inconsistent, service pages are too dense, and several sections feel hard coded rather than easy to maintain."
+    ],
+    "counts": {
+      "Copy / Content": 14,
+      "UX Design": 13,
+      "UI Design": 9,
+      "Development": 8,
+      "SEO": 6,
+      "Accessibility": 6,
+      "CRO": 5
+    }
+  }
+}

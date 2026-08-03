@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    font: 12px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0; padding: 14px; color: var(--figma-color-text);
+    background: var(--figma-color-bg);
+  }
+  h1 { font-size: 13px; margin: 0 0 2px; font-weight: 600; }
+  p.sub { margin: 0 0 14px; color: var(--figma-color-text-secondary); }
+  .drop {
+    border: 1.5px dashed var(--figma-color-border); border-radius: 8px;
+    padding: 16px; text-align: center; cursor: pointer; margin-bottom: 10px;
+    transition: border-color .12s, background .12s;
+  }
+  .drop:hover, .drop.over { border-color: #1E8FD9; background: var(--figma-color-bg-secondary); }
+  .drop strong { display: block; margin-bottom: 3px; }
+  .drop span { color: var(--figma-color-text-secondary); font-size: 11px; }
+  .status { font-size: 11px; margin: 8px 0; min-height: 15px; }
+  .ok { color: #2E8F86; }
+  .err { color: #D7586C; white-space: pre-wrap; }
+  .warn { color: #DF6630; }
+  .files {
+    max-height: 128px; overflow: auto; font-size: 11px;
+    border: 1px solid var(--figma-color-border); border-radius: 6px;
+    padding: 6px 8px; margin-bottom: 10px; background: var(--figma-color-bg-secondary);
+  }
+  .files div { display: flex; justify-content: space-between; padding: 1px 0; }
+  .files .n { color: var(--figma-color-text-secondary); }
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .row label { color: var(--figma-color-text-secondary); }
+  input[type=number] {
+    width: 74px; padding: 5px 6px; border-radius: 5px;
+    border: 1px solid var(--figma-color-border);
+    background: var(--figma-color-bg); color: var(--figma-color-text);
+  }
+  button {
+    width: 100%; padding: 9px; border-radius: 6px; border: 0; cursor: pointer;
+    font-weight: 600; font-size: 12px; background: #1E8FD9; color: #fff;
+  }
+  button.secondary { background: transparent; color: var(--figma-color-text-secondary);
+    border: 1px solid var(--figma-color-border); margin-top: 6px; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Website Assessment</h1>
+<p class="sub">Drop the audit bundle produced by the assessment skill.</p>
+
+<div class="drop" id="dropJson">
+  <strong>1 · findings.json</strong>
+  <span id="jsonName">click or drop the file here</span>
+</div>
+
+<div class="drop" id="dropImgs">
+  <strong>2 · screenshots</strong>
+  <span id="imgName">click or drop the framed PNGs here</span>
+</div>
+
+<div class="files" id="fileList" style="display:none"></div>
+
+<div class="row">
+  <label>Frame size</label>
+  <input type="number" id="fw" value="3840" step="16">
+  <span>×</span>
+  <input type="number" id="fh" value="2160" step="9">
+</div>
+
+<div class="status" id="status"></div>
+
+<button id="build" disabled>Build slides</button>
+<button id="cancel" class="secondary">Close</button>
+
+<input type="file" id="fileJson" accept=".json">
+<input type="file" id="fileImgs" accept="image/png,image/jpeg" multiple>
+
+<script>
+const state = { data: null, brand: null, images: {} };
+const $ = id => document.getElementById(id);
+
+function setStatus(text, cls) {
+  const el = $('status');
+  el.textContent = text || '';
+  el.className = 'status ' + (cls || '');
+}
+
+function refresh() {
+  const n = Object.keys(state.images).length;
+  const list = $('fileList');
+  if (n) {
+    list.style.display = 'block';
+    list.innerHTML = Object.keys(state.images).sort().map(k =>
+      '<div><span>' + k + '</span><span class="n">' +
+      state.images[k].w + '×' + state.images[k].h + '</span></div>').join('');
+  } else {
+    list.style.display = 'none';
+  }
+  $('build').disabled = !state.data;
+
+  if (state.data) {
+    const slides = (state.data.slides || []);
+    const want = slides.map(s => (s.framed || s.screenshot || '').split('/').pop()).filter(Boolean);
+    const missing = want.filter(w => !state.images[w]);
+    if (missing.length) {
+      setStatus('Ready — ' + slides.length + ' section slide(s). Missing ' +
+                missing.length + ' screenshot(s): ' + missing.slice(0, 3).join(', ') +
+                (missing.length > 3 ? '…' : '') + '. Slides will build without them.', 'warn');
+    } else {
+      setStatus('Ready — ' + slides.length + ' section slide(s), all screenshots matched.', 'ok');
+    }
+  }
+}
+
+async function readJson(file) {
+  const text = await file.text();
+  let parsed;
+  try { parsed = JSON.parse(text); }
+  catch (e) { setStatus('That file is not valid JSON:\n' + e.message, 'err'); return; }
+
+  // The same drop zone accepts brand.json, so tell them apart.
+  if (parsed.slides || parsed.summary || parsed.meta) {
+    state.data = parsed;
+    $('jsonName').textContent = file.name + ' — ' + (parsed.slides || []).length + ' section(s)';
+  } else if (parsed.colors && parsed.categories) {
+    state.brand = parsed;
+    $('jsonName').textContent += '  (+ brand.json)';
+  } else {
+    setStatus('Unrecognised JSON — expected findings.json (with "slides") or brand.json.', 'err');
+    return;
+  }
+  refresh();
+}
+
+function readImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const bytes = new Uint8Array(reader.result);
+      const blob = new Blob([bytes], { type: file.type });
+      const url = URL.createObjectURL(blob);
+      const im = new Image();
+      im.onload = () => {
+        state.images[file.name] = { bytes, w: im.naturalWidth, h: im.naturalHeight };
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      im.onerror = () => {
+        state.images[file.name] = { bytes, w: 0, h: 0 };
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      im.src = url;
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function handleFiles(files) {
+  const arr = Array.from(files);
+  const jsons = arr.filter(f => /\.json$/i.test(f.name));
+  const imgs = arr.filter(f => /\.(png|jpe?g)$/i.test(f.name));
+  for (const j of jsons) await readJson(j);
+  if (imgs.length) {
+    setStatus('Reading ' + imgs.length + ' image(s)…');
+    await Promise.all(imgs.map(readImage));
+    $('imgName').textContent = Object.keys(state.images).length + ' image(s) loaded';
+  }
+  refresh();
+}
+
+function wireDrop(zoneId, inputId) {
+  const zone = $(zoneId), input = $(inputId);
+  zone.onclick = () => input.click();
+  input.onchange = e => handleFiles(e.target.files);
+  ['dragenter', 'dragover'].forEach(t =>
+    zone.addEventListener(t, e => { e.preventDefault(); zone.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(t =>
+    zone.addEventListener(t, e => { e.preventDefault(); zone.classList.remove('over'); }));
+  zone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+}
+
+wireDrop('dropJson', 'fileJson');
+wireDrop('dropImgs', 'fileImgs');
+
+// dropping anywhere in the window works too
+['dragover', 'drop'].forEach(t => document.addEventListener(t, e => e.preventDefault()));
+document.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+$('build').onclick = () => {
+  if (!state.data) return;
+  setStatus('Building…');
+  $('build').disabled = true;
+  parent.postMessage({ pluginMessage: {
+    type: 'build',
+    data: state.data,
+    brand: state.brand,
+    images: state.images,
+    frameW: parseInt($('fw').value, 10) || 3840,
+    frameH: parseInt($('fh').value, 10) || 2160
+  } }, '*');
+};
+
+$('cancel').onclick = () => parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+
+onmessage = (event) => {
+  const m = event.data.pluginMessage;
+  if (!m) return;
+  if (m.type === 'done') {
+    setStatus('Built ' + m.slides + ' slides in ' + m.font + '.', 'ok');
+    $('build').disabled = false;
+  }
+  if (m.type === 'warn') setStatus(m.text, 'warn');
+  if (m.type === 'error') { setStatus(m.text, 'err'); $('build').disabled = false; }
+};
+</script>
+</body>
+</html>
