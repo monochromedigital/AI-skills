@@ -8,7 +8,7 @@ Each folder under `skills/` is a self-contained skill: a `SKILL.md` with YAML fr
 
 | Skill | What it does |
 | --- | --- |
-| [`website-assessment`](skills/website-assessment) | Section-by-section UX/UI/SEO/accessibility audit of a live site, delivered as a branded PPTX deck and/or Figma slides with numbered markers pinned to the exact elements. |
+| [`website-assessment`](skills/website-assessment) | Section-by-section UX/UI/SEO/accessibility audit of a live site — typed to the kind of site it is (ecommerce, SaaS, service, corporate, publisher, marketplace, nonprofit/education) and backed by researched benchmarks — delivered as a branded PPTX deck and/or Figma slides with numbered markers pinned to the exact elements. |
 | [`sitemap-ia-board`](skills/sitemap-ia-board) | Full visual sitemap + information architecture board as a single HTML artifact — page columns, section cards tagged for UX/CRO/SEO, conversion-flow logic, and a CMS spec for developers. |
 | [`psychology-of-design`](skills/psychology-of-design) | Catalog of 50 behavioral-psychology and cognitive-bias principles for designing, reviewing, and improving interfaces and conversion flows. |
 | [`linear-ticket-writing`](skills/linear-ticket-writing) | Turns vague tasks into Linear tickets that an agent can execute end-to-end — full context, explicit constraints, testable acceptance criteria, MCP-ready formatting. |

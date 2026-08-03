@@ -1,5 +1,10 @@
 # Categories, severity, and what to look for
 
+This file is the floor — the checks that hold for every website. It is not the
+whole audit. Read it first, then read the one file in `site-types/` that
+matches the site you are auditing; that file adds the checks a generic
+checklist cannot know about, and defines what conversion means here.
+
 Seven categories. Every finding carries at least one; two or three is common
 (a weak CTA is often `UX Design` + `CRO`, a red-on-green active state is
 `UI Design` + `Accessibility`). Never tag more than three — the pill row stops
@@ -13,7 +18,7 @@ scanning cleanly.
 | Development | `#866FBC` | Is it built to be maintained and to perform? |
 | SEO | `#D7586C` | Can it be found and understood by search? |
 | Accessibility | `#7D797E` | Can everyone use it? |
-| CRO | `#2E8F86` | Does it turn visitors into enquiries? |
+| CRO | `#2E8F86` | Does it turn visitors into whatever this site exists to produce? |
 
 ## Choosing between adjacent tags
 
@@ -22,9 +27,10 @@ These four pairs cause most mis-tagging:
 - **UX vs UI** — UX is *can they do the thing*; UI is *does it look right*. A
   button nobody can find is UX. A button that clashes with the palette is UI.
   A button that is both hard to find *and* ugly gets both tags.
-- **UX vs CRO** — UX is task completion for any goal, CRO is specifically
-  revenue or lead capture. "The form has 14 fields" is UX. "The form asks for
-  a phone number before the user knows the price" is CRO.
+- **UX vs CRO** — UX is task completion for any goal; CRO is specifically the
+  site's own defining outcome — an order, a signup, an enquiry, a donation, a
+  completed application. "The form has 14 fields" is UX. "The form asks for a
+  phone number before the user knows the price" is CRO.
 - **Copy vs SEO** — Copy is whether a human understands it. SEO is whether a
   crawler does. A vague H1 is usually both.
 - **Development vs UI** — if a designer could fix it in Figma it is UI. If it
@@ -110,14 +116,31 @@ makes the finding undeniable.
 
 ## CRO
 
+**Define the conversion before writing a single CRO finding.** It is not
+always an enquiry. Order, trial signup, demo booked, enquiry, donation,
+application, subscription, booking, listing created, task completed — the
+site-type file states which one applies. A CRO finding that optimises for the
+wrong outcome is worse than no finding, and a client spots it immediately.
+
+These hold whatever the conversion is:
+
 - One primary action per screen; competing CTAs de-emphasised
-- Contact route visible at all times, not buried in a footer
-- Trust signals near the point of decision — credentials, testimonials, real photos
-- Friction removed before the commitment point; ask for the phone number later
+- The route to the conversion is visible at all times, not buried in a footer
+- Trust signals near the point of decision — credentials, testimonials, real
+  photos, verification, financial transparency, whatever this audience needs
+  in order to commit
+- Friction removed before the commitment point; ask for the sensitive detail
+  later. Nothing is requested before the visitor knows what they are getting
+- Cost — money, time, or data — is disclosed before the visitor invests effort,
+  never at the last step
 - Objections answered on the page where they arise, not on a separate FAQ
-- Proof of responsiveness (hours, expected reply time) where users must wait
+- Proof of what happens next, and when, wherever the visitor must wait
 - Exit points minimised on conversion pages
-- The path from "interested" to "in touch" is countable and short
+- The path from "interested" to "committed" is countable and short — count it,
+  and put the number in the finding
+
+Then read the site-type file for the conversion path that actually matters
+here, and audit that path step by step.
 
 ## Severity
 

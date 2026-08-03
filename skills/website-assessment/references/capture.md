@@ -1,5 +1,9 @@
 # Capturing the site
 
+**The site is always rendered live.** No audit is written from memory, from a
+description of the site, or from a cached copy. Routes A and B satisfy this;
+Route C does not, and carries conditions — see `research.md`.
+
 Three routes, in order of preference. Try each until one works — do not ask the
 user to choose unless all three fail.
 
@@ -43,15 +47,22 @@ python3 scripts/capture.py --url https://example.com --crawl 6 --out ./audit
 Writes `audit/screens/*.png` and `audit/page-data.json`. Test reachability
 first with a cheap `WebFetch` — if that fails too, fall back to Route A.
 
-## Route C — HTML only
+## Route C — HTML only (declared limitation, not a normal route)
 
 No visuals. `WebFetch` the pages and assess markup and copy. Findings are
 limited to Copy/Content, SEO, and some Development; UI, UX detail, and visual
 Accessibility cannot be judged honestly without seeing the page.
 
-Say so plainly in the deck rather than guessing: add a note to the summary that
-the audit was performed on markup only, and skip the section screenshots.
-Never invent a visual finding from HTML alone.
+Before using it, tell the user that Routes A and B failed, that the result will
+be a markup review rather than a visual assessment, and get their agreement to
+continue on that basis. Then:
+
+- Add a note to the summary slide stating the audit was performed on markup
+  only and that UI and visual accessibility were not assessed
+- Skip the section screenshots rather than shipping empty device frames
+- Never invent a visual finding from HTML alone. "The hero contrast is low"
+  written from markup is a fabrication, and it is the fastest way to lose a
+  client
 
 ## Framing the screenshots
 
@@ -80,6 +91,38 @@ small tap targets, load timing, transfer weight, and the heaviest resources.
 Turn each into a finding with the number attached. That is where the audit's
 authority comes from — a client can dismiss "the contrast looks low"; they
 cannot dismiss "2.14:1 against a 4.5:1 minimum, on 23 elements".
+
+## Capturing the type's journey
+
+Capture happens in two passes. The first pass gets the homepage and whatever
+the user asked for. Once the site type is identified (`site-types/README.md`),
+**go back and capture the journey that type's file lists as mandatory** — the
+cart and checkout, the pricing page in both toggle states, the donation flow,
+the filtered search, the enquiry form.
+
+These flows are the reason the audit is worth paying for, and they are the
+ones a single-pass capture always misses.
+
+Three practicalities:
+
+- **Stateful flows need Route A.** A cart, a checkout, a logged-in dashboard,
+  or a multi-step application depends on session state the sandbox does not
+  have. Add the item, start the flow, walk it step by step, screenshot each step
+- **Stop before the irreversible action.** Capture up to the payment screen,
+  never through it. Same for submitting a real enquiry, a real application, or
+  a real donation — fill the form, screenshot it, do not submit. If a step can
+  only be seen by completing it, ask the user for a staging URL or a test account
+- **Capture the failure states too.** An empty search result, a form validation
+  error, an out-of-stock product. These produce some of the strongest findings
+  and nobody ever screenshots them
+
+Anything unreachable gets stated in the summary rather than silently skipped.
+
+## Capturing competitors
+
+Two competitors, the same page type you are criticising on the client's site.
+Frame them the same way. `references/research.md` covers how they enter the
+deck; the capture itself is identical, just with `--out ./audit/competitors`.
 
 ## Choosing sections
 

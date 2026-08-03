@@ -252,7 +252,7 @@ class DeckBuilder {
    * reports how many it placed so the caller can spill the rest onto a
    * continuation slide.
    */
-  panel(slide, findings, startN, showSeverity, showFix, showPrinciple) {
+  panel(slide, findings, startN, showSeverity, showFix, showPrinciple, showBenchmark) {
     const L = this.b.layout, T = this.b.type, C = this.b.colors;
     const px = this.px(L.panel.x), py = this.py(L.panel.y);
     const pw = this.px(L.panel.w), ph = this.py(L.panel.h);
@@ -360,6 +360,10 @@ class DeckBuilder {
       if (f.observation) addPara([{ text: f.observation }]);
       if (f.detail) addPara([{ text: f.detail }]);
       if (f.fix && showFix) addPara([{ text: 'Fix: ', style: 'SemiBold' }, { text: f.fix }]);
+      if (f.benchmark && showBenchmark !== false) {
+        addPara([{ text: 'Benchmark: ', style: 'SemiBold' },
+                 { text: f.benchmark, color: C.body_muted }]);
+      }
       if (f.principle && showPrinciple) {
         addPara([{ text: 'Principle: ', style: 'SemiBold' },
                  { text: f.principle, color: C.body_muted }]);
@@ -494,6 +498,7 @@ figma.ui.onmessage = async (msg) => {
     const showSeverity = meta.show_severity !== false;
     const showFix = meta.show_fix !== false;
     const showPrinciple = meta.show_principle !== false;
+    const showBenchmark = meta.show_benchmark !== false;
 
     const images = msg.images || {};   // filename -> {bytes: Uint8Array, w, h}
     const made = [];
@@ -524,7 +529,8 @@ figma.ui.onmessage = async (msg) => {
         }
 
         const chunk = findings.slice(cursor);
-        const res = B.panel(slide, chunk, cursor + 1, showSeverity, showFix, showPrinciple);
+        const res = B.panel(slide, chunk, cursor + 1, showSeverity, showFix, showPrinciple,
+                            showBenchmark);
 
         if (rect) {
           chunk.slice(0, res.placed).forEach((f, i) => {

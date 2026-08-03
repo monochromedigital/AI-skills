@@ -45,7 +45,7 @@ SEV = BRAND["severity"]
 
 # Toggled from findings.json meta; lets a deck run denser by dropping
 # the optional per-finding lines.
-SHOW = {"fix": True, "principle": True}
+SHOW = {"fix": True, "principle": True, "benchmark": True}
 
 
 def rgb(h):
@@ -299,6 +299,11 @@ def _card_height_in(f, body_w_in, show_severity=True):
         h += 0.07 + text_h_in(f["detail"], body, body_w_in)
     if f.get("fix") and SHOW.get("fix", True):
         h += 0.06 + text_h_in("Fix: " + f["fix"], body, body_w_in)
+    if f.get("benchmark") and SHOW.get("benchmark", True):
+        # Benchmark strings are long and carry a wide SemiBold label, which the
+        # char-count estimator under-measures; budget against a narrower box so
+        # a near-boundary line wraps in the estimate as it does on the slide.
+        h += 0.04 + text_h_in("Benchmark: " + f["benchmark"], body, body_w_in * 0.90)
     if f.get("principle") and SHOW.get("principle", True):
         h += 0.04 + text_h_in("Principle: " + f["principle"], body, body_w_in)
     if f.get("scope"):
@@ -372,6 +377,9 @@ def section_slide(prs, meta, page, section, img_path, findings, start_n, cont=Fa
             paras.append([(f["detail"], {})])
         if f.get("fix") and SHOW.get("fix", True):
             paras.append([("Fix: ", {"bold": True}), (f["fix"], {})])
+        if f.get("benchmark") and SHOW.get("benchmark", True):
+            paras.append([("Benchmark: ", {"bold": True}),
+                          (f["benchmark"], {"color": C["body_muted"]})])
         if f.get("principle") and SHOW.get("principle", True):
             paras.append([("Principle: ", {"bold": True}),
                           (f["principle"], {"color": C["body_muted"]})])
@@ -515,6 +523,7 @@ def build(findings_path, root, out_path):
     meta = data.get("meta", {})
     SHOW["fix"] = meta.get("show_fix", True)
     SHOW["principle"] = meta.get("show_principle", True)
+    SHOW["benchmark"] = meta.get("show_benchmark", True)
     root = Path(root)
 
     prs = Presentation()

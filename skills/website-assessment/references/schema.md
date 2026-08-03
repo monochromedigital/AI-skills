@@ -10,9 +10,11 @@ The single contract between the audit and both renderers. Write this file, then
     "url": "https://example.com",
     "audited_on": "2026-08-03",
     "audience": "prospect",          // prospect | existing | internal (framing only)
+    "site_type": "ecommerce",        // which site-types/ file governed the audit
     "cover": true,                   // include a cover slide
     "show_severity": true,           // severity pill on each card
     "show_fix": true,                // "Fix: ..." line
+    "show_benchmark": true,          // "Benchmark: ..." line
     "show_principle": true,          // "Principle: ..." line
     "priority_slide": true,          // ranked Critical/Moderate slide at the end
     "footer_right": "Website UX/UI Assessment"
@@ -34,6 +36,7 @@ The single contract between the audit and both renderers. Write this file, then
           "observation": "The green header feels visually heavy and creates a low-contrast navigation area, making the menu harder to read and scan.",
           "detail": "Optional second paragraph for evidence or explanation.",
           "fix": "Concrete recommended change.",
+          "benchmark": "Baymard Institute, 2026 — extra costs are the top abandonment reason, cited by 40%",   // optional, researched only
           "principle": "Visual Hierarchy",                 // optional, sparing
           "scope": "Applicable on all the website and also on footer",  // optional, renders bold
           "marker": { "x": 0.050, "y": 0.047 }             // see below
@@ -49,6 +52,29 @@ The single contract between the audit and both renderers. Write this file, then
   }
 }
 ```
+
+## `site_type` and `benchmark`
+
+`meta.site_type` records which file in `site-types/` governed the audit. It is
+not rendered; it exists so a rebuild, a second-round audit, or another person
+picking up the deck applies the same lens. Use the filename without the
+extension: `ecommerce`, `saas`, `service-business`, `corporate`,
+`content-publisher`, `marketplace`, `nonprofit-education`, or `none`.
+
+`benchmark` renders as its own muted line under the fix, in the same slot as
+`principle`. It carries external evidence and nothing else:
+
+- Only for figures researched **during this session** and recorded in
+  `research.json`. Never from memory
+- Attribute it — source and year, e.g.
+  `Baymard Institute, 2026 — 50-study average`
+- Never use it for a number measured from the client's own page; that belongs
+  in the observation, where it is stronger
+- One per finding, and on far fewer findings than you will be tempted to. A
+  deck where every card cites a statistic reads as padding
+
+Set `show_benchmark: false` in `meta` for a denser deck; the text stays in the
+JSON for the client's record.
 
 ## Marker coordinates
 
