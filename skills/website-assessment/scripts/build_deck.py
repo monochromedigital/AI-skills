@@ -64,7 +64,10 @@ def fy(f):
 # ------------------------------------------------------------------ text math
 # Urbanist is fairly narrow. These constants were tuned against the reference
 # slides; adjust CHAR_W_RATIO if wrapping looks off after a real run.
-CHAR_W_RATIO = 0.485      # average glyph advance / font size
+CHAR_W_RATIO = 0.55       # average glyph advance / font size. Measured off a
+                          # rendered deck: 8.5pt body in a 3.51in column wraps
+                          # at ~54 chars, not the ~61 that 0.485 predicted, so
+                          # long cards were clipping their last line.
 LINE_H_RATIO = 1.42
 
 
@@ -300,10 +303,7 @@ def _card_height_in(f, body_w_in, show_severity=True):
     if f.get("fix") and SHOW.get("fix", True):
         h += 0.06 + text_h_in("Fix: " + f["fix"], body, body_w_in)
     if f.get("benchmark") and SHOW.get("benchmark", True):
-        # Benchmark strings are long and carry a wide SemiBold label, which the
-        # char-count estimator under-measures; budget against a narrower box so
-        # a near-boundary line wraps in the estimate as it does on the slide.
-        h += 0.04 + text_h_in("Benchmark: " + f["benchmark"], body, body_w_in * 0.90)
+        h += 0.04 + text_h_in("Benchmark: " + f["benchmark"], body, body_w_in)
     if f.get("principle") and SHOW.get("principle", True):
         h += 0.04 + text_h_in("Principle: " + f["principle"], body, body_w_in)
     if f.get("scope"):

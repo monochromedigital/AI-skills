@@ -65,6 +65,30 @@
   .db-notes{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; margin-top:8px;}
   .db-note{border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.5; background:#fafaf8;}
   .db-note b{display:block; margin-bottom:3px;}
+  /* --- personas (before the board: they justify it) --- */
+  .personas{max-width:1200px; margin:0 auto 34px;}
+  .personas > h2{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;}
+  .basis{font-size:12.5px; color:var(--muted); line-height:1.55; max-width:860px; margin-bottom:14px;}
+  .basis b{color:var(--ink);}
+  .pgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;}
+  .pcard{background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden;}
+  .pcard .pbar{display:block; height:4px;}
+  .pcard .pin{padding:14px 16px;}
+  .pcard h3{font-size:16px; margin-bottom:1px;}
+  .pcard .prole{font-size:12px; color:var(--muted);}
+  .pweight{display:inline-block; margin-top:8px; font-size:10.5px; font-weight:700; letter-spacing:.03em; padding:3px 9px; border-radius:99px; background:#f2f2ef; border:1px solid var(--border); color:var(--muted);}
+  .pquote{margin-top:11px; padding-left:11px; border-left:3px solid var(--border); font-size:13.5px; font-style:italic; line-height:1.45;}
+  .pctx{font-size:12px; color:var(--muted); line-height:1.55; margin-top:10px;}
+  .psub{font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700; margin:13px 0 4px;}
+  .plist{list-style:none;}
+  .plist li{font-size:12px; line-height:1.45; padding:5px 0 5px 13px; position:relative; border-bottom:1px dashed #eee;}
+  .plist li:last-child{border-bottom:none;}
+  .plist li::before{content:""; position:absolute; left:2px; top:11px; width:4px; height:4px; border-radius:50%; background:var(--muted);}
+  .journey{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
+  .journey .step{font-size:11px; background:#fafaf8; border:1px solid var(--border); border-radius:7px; padding:3px 8px;}
+  .journey .arw{color:var(--muted); font-size:11px;}
+  /* Evidence badge: the finding id ONLY, never a copy of the finding's words. */
+  .fid{display:inline-block; margin-top:5px; font-family:ui-monospace,Menlo,monospace; font-size:9.5px; font-weight:700; letter-spacing:.02em; padding:2px 7px; border-radius:5px; background:#eef4ff; border:1px solid #c9dcff; color:#2563eb;}
   .gloss-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:8px;}
   .gl{border:1px solid var(--border); border-radius:10px; padding:9px 12px; background:#fff; font-size:12px; line-height:1.5;}
   .gl b{font-size:12.5px;}
@@ -91,6 +115,55 @@
   </div>
 </div>
 
+<!-- PERSONAS — before the board, because they are the justification for it.
+     Say what the personas are grounded in, honestly. If there is no research,
+     say there is no research: "derived from the 50 projects listed in the
+     client's own archive" is credible; an unsourced persona is decoration.
+     A persona that does not change the IA does not belong here — cut it.
+     Every blocker that an audit finding explains carries that finding's id in
+     a .fid badge, and NOTHING ELSE from the finding. Copying the audit's words
+     here means the two documents disagree the moment one is reworded. -->
+<div class="personas">
+  <h2>Who this is for</h2>
+  <p class="basis"><!-- The evidence note. e.g. "Derived from the 50 installations listed in
+    Northgate's own project archive (2019–2026), clustered by service. <b>No primary research
+    has been commissioned</b>, so treat the weightings as what the company has actually sold,
+    not as what the market wants." --></p>
+  <div class="pgrid">
+
+    <!-- EXAMPLE persona — replace. One card per persona, 2-4 in total. -->
+    <div class="pcard">
+      <span class="pbar" style="background:var(--cro);"></span>
+      <div class="pin">
+        <h3>Rana</h3>
+        <div class="prole">Operations manager, food importer</div>
+        <span class="pweight">22 of 50 installations</span>
+        <blockquote class="pquote">“I need to know you can hold 40 pallets bonded before I call anyone.”</blockquote>
+        <p class="pctx">Rana moves perishable stock through the port and is judged on how little of it spoils. She shortlists by capability, not brand, from her phone between deliveries.</p>
+
+        <div class="psub">What they need</div>
+        <ul class="plist">
+          <li>Bonded capacity in square metres, stated on the page</li>
+          <li>Someone she can reach the same day</li>
+        </ul>
+
+        <div class="psub">What stops them today</div>
+        <ul class="plist">
+          <li>Cannot tell from the homepage whether the service exists at all<br><span class="fid">f-0000000000</span><!-- placeholder: replace with a real finding id, or delete the badge --></li>
+        </ul>
+
+        <div class="psub">Their route through the proposed site</div>
+        <div class="journey">
+          <span class="step">Home</span><span class="arw">→</span>
+          <span class="step">Bonded warehousing</span><span class="arw">→</span>
+          <span class="step">Enquiry</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="board-wrap">
 <div class="board">
 
@@ -103,7 +176,8 @@
     <div class="col-head"><span class="name">Home</span><span class="slug">/</span></div>
     <div class="pagedesc"><b>In plain words</b>The shop window. A first-time visitor should understand in 5 seconds what we sell, who it's for, and what to do next. <i>Example: a delivery company owner lands here, sees micro trucks and the OEM logos, glances at the fuel-savings estimate, and taps "Request a Quote" or the WhatsApp button.</i></div>
     <div class="col-body">
-      <div class="sec"><h3>Header / Hero + Trust Strip</h3><p>H1 value prop with dual CTA. Trust logos directly under the headline — trust answered in the first screen, no separate band needed.</p><div class="tags"><span class="tag t-cro">CRO</span><span class="tag t-seo">SEO</span></div></div>
+      <!-- A section that exists because of an audit finding carries that finding's id, and only the id. -->
+      <div class="sec"><h3>Header / Hero + Trust Strip</h3><p>H1 value prop with dual CTA. Trust logos directly under the headline — trust answered in the first screen, no separate band needed.</p><div class="tags"><span class="tag t-cro">CRO</span><span class="tag t-seo">SEO</span></div><span class="fid">f-0000000000</span><!-- placeholder: replace with a real finding id, or delete the badge --></div>
       <div class="sec"><h3>Offering Lineup</h3><p>Category entries + featured items with key specs and CTAs — one section, one job: route buyers into the catalog.</p><div class="tags"><span class="tag t-ux">UX</span><span class="tag t-cro">CRO</span></div></div>
       <div class="sec"><h3>Value Proposition</h3><p>Why customers switch — stat blocks, core objections answered.</p><div class="tags"><span class="tag t-cro">CRO</span></div></div>
       <div class="sec"><h3>Lead Hook</h3><p>The single lead-capture hook on Home (calculator teaser, guide, offer) — one clear ask converts better than two competing ones.</p><div class="tags"><span class="tag t-cro">CRO</span><span class="tag t-lead">LEAD</span></div></div>
@@ -207,6 +281,8 @@
   <div class="gloss-grid">
     <div class="gl"><b>UX</b> <span>— User Experience: how easy and pleasant the site is to use, with minimum confusion.</span></div>
     <div class="gl"><b>IA (Information Architecture)</b> <span>— How content is organized and connected across pages — what this document defines.</span></div>
+    <div class="gl"><b>Persona</b> <span>— A named stand-in for one type of buyer, built from evidence about who actually buys. Its job is to settle arguments about the structure: if a page serves no persona, it is being built on taste.</span></div>
+    <div class="gl"><b>Finding id (f-…)</b> <span>— The reference to one item in the site audit. The card shows the id, not the audit's wording, so the two documents cannot drift apart when a finding is reworded.</span></div>
     <div class="gl"><b>Sitemap</b> <span>— The map of all pages and how they link together (the board above).</span></div>
     <div class="gl"><b>Above the fold</b> <span>— What's visible before any scrolling. The most valuable real estate on a page.</span></div>
     <div class="gl"><b>Hero</b> <span>— The big top section of a page: headline, image, primary buttons.</span></div>

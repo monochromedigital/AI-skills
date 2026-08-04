@@ -76,6 +76,14 @@ Devices: `tablet` (matches the reference deck), `phone`, `laptop`, `plain`.
 Prints a `screen_rect` per image — copy each into the matching slide entry in
 `findings.json` so markers land correctly.
 
+**Framing is for the deck only.** The interactive web report draws its own
+browser chrome, so it consumes the raw `screens/*.png` rather than the framed
+PNGs. Keep both paths in `findings.json` — `screenshot` for the raw file,
+`framed` for the framed one — and each renderer takes what it needs. If only a
+framed image is available, `build_site.py` maps the marker coordinates through
+`screen_rect` so pins still land correctly; the report just shows a bezel
+inside a bezel, which is worth avoiding.
+
 Sections taller than 1.6× their width are cropped from the top by default
 (`--max-h-ratio`); the finding text carries what is below the fold.
 

@@ -1,64 +1,261 @@
 ---
 name: sitemap-ia-board
-description: Produce a complete visual sitemap + information architecture board as a single HTML artifact for any website project — page columns with section-level cards tagged for UX, CRO, SEO, and lead generation, plus plain-language explainers, phase tagging, conversion-flow logic, a CMS/database architecture spec for developers, and a jargon dictionary. Use this whenever the user asks for a sitemap, information architecture, IA, site structure, page structure, website planning, a "site map", website wireframe planning, or wants to plan the pages/sections of a new or redesigned website — for any industry (e-commerce, services, B2B, SaaS, restaurants, real estate, portfolios). Also trigger when a client brief for a new website/brand is shared and the deliverable is website structure or planning, even if the words "sitemap" or "IA" never appear.
+description: Produce a complete visual sitemap + information architecture board for any website project — evidence-grounded personas, page columns with section-level cards tagged for UX, CRO, SEO, and lead generation, plus plain-language explainers, phase tagging, conversion-flow logic, a CMS/database architecture spec for developers, and a jargon dictionary. Delivers a structured `ia.json` plus either a standalone HTML board or a combined report rendered alongside an existing site audit. Use this whenever the user asks for a sitemap, information architecture, IA, site structure, page structure, website planning, a "site map", website wireframe planning, personas for a website, or wants to plan the pages/sections of a new or redesigned website — for any industry (e-commerce, services, B2B, SaaS, restaurants, real estate, portfolios). Also trigger when a client brief for a new website/brand is shared and the deliverable is website structure or planning, even if the words "sitemap" or "IA" never appear.
 ---
 
 # Sitemap + Information Architecture Board
 
-Produce a single self-contained HTML file: a Relume-style visual board where each page of the website is a column of section cards, followed by conversion logic, a CMS/database architecture, and a jargon dictionary. The audience is mixed — client, designers, copywriters, SEO, and developers all read the same document — which is why it layers plain language on top of specialist annotations.
+A Relume-style visual board where each page of the website is a column of
+section cards, preceded by the personas that justify them and followed by
+conversion logic, a CMS/database architecture, and a jargon dictionary. The
+audience is mixed — client, designers, copywriters, SEO and developers all read
+the same document — which is why it layers plain language on top of specialist
+annotations.
+
+Read `references/project-contract.md` first. It governs where the work lives,
+how this skill talks to the site-audit skill, and what happens when a file it
+expects is missing. Where the contract and this file disagree, the contract
+wins.
+
+## Two modes
+
+The folder decides, not the user:
+
+| In the project folder | What this skill does |
+|---|---|
+| `findings.json` is present | **Redesign.** There is a diagnosis attached. Cite it, write `ia.json`, and let the assessment skill's `build_site.py` render the combined report. Do not build a second HTML board competing with it |
+| no `findings.json` | **Greenfield.** Build as before: `ia.json` plus the standalone board from `assets/board-template.html`, so the skill still delivers on its own |
 
 ## Workflow
 
-### 1. Gather inputs
+### 1 · The project folder
 
-Read whatever the user provided (brief, screenshot, description). You need five things before designing anything:
+Ask for it at the start, in the same `AskUserQuestion` call as everything else
+— contract §1. Default the name to a slug of the client, confirm the parent
+directory, and **reuse the folder if it already exists** rather than creating a
+second one.
+
+Then read `project.json` if it is there. Another skill has already established
+the client, URL, market, audience, languages and brand tokens; take them and do
+not ask again. Asking a second time invites a different answer, and now two
+documents disagree about the client's own name. If it is not there, create it
+per contract §2.
+
+### 2 · Gather what the IA needs
+
+Whatever `project.json` did not settle. Read what the user provided — brief,
+screenshot, description — and get to five things:
 
 1. **Business model** — what is sold, to whom (B2B / B2C / both)
-2. **Primary conversion** — the #1 action a visitor should take (quote request, booking, purchase, call)
-3. **Markets & languages** — countries served, languages (multilingual changes URL structure, DB schema, and layout — RTL languages mirror the whole UI)
-4. **Trust situation** — new company vs established (a new company has no testimonials; see phase discipline below)
-5. **Post-launch plans** — content/SEO/ads retainers change what the architecture must be ready for
+2. **Primary conversion** — the #1 action a visitor should take
+3. **Markets & languages** — multilingual changes URL structure, DB schema and
+   layout; RTL languages mirror the whole UI
+4. **Trust situation** — new company vs established (a new company has no
+   testimonials; see phase discipline)
+5. **Post-launch plans** — content/SEO/ads retainers change what the
+   architecture must be ready for
 
-If the input is thin (e.g. "a website for my restaurant"), ask 3–4 questions covering the gaps using the AskUserQuestion tool before building. If the input is a full brief, extract these and proceed — don't interrogate someone who already wrote it all down.
+If the input is thin, ask 3–4 questions covering the gaps. If it is a full
+brief, extract and proceed — don't interrogate someone who already wrote it all
+down.
 
-### 2. Design the IA before touching the template
+### 3 · Read the audit, if there is one
 
-Decide pages and sections on paper first. Read `references/methodology.md` for the reasoning rules — it covers how to derive pages from a business model, the tagging system, phase discipline, lead-capture layering, SEO architecture (canonical URLs, geo pages, content hubs), and the DB modeling patterns. The board is only as good as this thinking; the template just renders it.
+If `findings.json` is in the folder, this is a redesign with a diagnosis
+attached, not a greenfield build. Read it, and use it twice:
 
-A typical build is 8–12 page columns. Every site gets: Home, primary offering page(s) + detail template, a dedicated conversion landing page, About, Contact, a content/education hub, and a Utility column (thank-you pages, legal, 404, search). Add industry-specific pages from the methodology's patterns.
+- **To justify sections.** A section that exists because of a finding carries
+  that finding's `fid` — one reference, the id only, never a copy of the audit's
+  text. Contract §7 explains why copying is the failure mode
+- **To inform the structure.** A page whose absence caused a Critical finding
+  is not optional. If the audit says six services share one URL and none can
+  rank, the IA has six service pages, and each cites that finding
 
-### 3. Build from the template
+With no `findings.json`, build greenfield and emit **no `fid` anywhere**. Never
+invent one — a `fid` in a greenfield project fails validation, which is exactly
+what should happen.
 
-Copy `assets/board-template.html` and fill it in. The template contains the complete CSS, the layout skeleton, one fully-worked example column showing the expected card quality, and HTML comments marking every insertion point. Keep the visual system exactly as-is (colors, tags, dashed Phase-2 style) — consistency across projects is part of the value.
+### 4 · Personas
+
+New to this skill, and they come **before** the IA because they are the
+argument for it. Read `references/personas.md` — how to ask what they are
+grounded in, why the basis goes in the deliverable even when the answer is "no
+research", how to derive the set from a client's own published archive, and
+what each persona carries.
+
+Two things are non-negotiable:
+
+- **Be honest about the basis in the output**, not just in conversation
+- **A persona that does not change the IA does not belong in the document**
+
+Where a site already exists, prefer evidence the client has published over
+invention — a projects archive, a client list, case studies. Derive the persona
+set from what they actually sold and state the count behind each one ("15 of 50
+installations").
+
+### 5 · Design the IA before touching the template
+
+Decide pages and sections on paper first. Read `references/methodology.md` for
+the reasoning rules — deriving pages from a business model, the tagging system,
+phase discipline, lead-capture layering, SEO architecture, DB modelling
+patterns. The board is only as good as this thinking; the template just renders
+it.
+
+A typical build is 8–12 page columns. Every site gets: Home, primary offering
+page(s) + detail template, a dedicated conversion landing page, About, Contact,
+a content/education hub, and a Utility column. Add industry-specific pages from
+the methodology's patterns.
+
+### 6 · Apply the quality bar
+
+Before writing anything, check the design against these — they come from real
+review cycles:
+
+- **Home is 6–8 sections, not 12.** Merge overlapping sections (categories +
+  featured items = one section; trust logos belong inside the hero). One lead
+  hook on Home, not two competing ones
+- **Phase discipline.** Anything needing content the client won't have at launch
+  (testimonials, case studies, blog teasers) or real build cost that isn't
+  launch-critical becomes a dashed Phase 2 card. Empty social proof placeholders
+  hurt credibility — never ship them
+- **One canonical URL per item.** Detail pages live at one URL regardless of
+  navigation path, never nested under brand or category. Document it in the dev
+  notes
+- **A dedicated conversion landing page** (distraction-free, multi-step form,
+  per-type thank-you pages) whenever paid media is plausible
+- **FAQ is content-first.** Value = long-tail queries + AI answers. FAQ schema
+  is optional — Google dropped FAQ rich results for most sites in 2023. One
+  canonical FAQ hub; page-level FAQs stay short and link to it
+- **Lead capture is layered by intent stage**: cold (newsletter/guide), warm
+  (gated downloads), hot (quote/booking). If the board has only one form, it's
+  underbuilt
+
+### 7 · Write `ia.json`
+
+Read `references/ia-schema.md` and write it into the project folder. This is
+the file the shared renderer consumes, and the record any later skill reads.
+
+It is a **serialisation of the thinking above, not a replacement for it**. The
+quality bar, phase discipline, lead-capture layering and the In-plain-words
+formula all still apply — do the work, then write it down in this shape.
+
+`db` and `glossary` are optional and belong to the standalone board. The shared
+renderer ignores them rather than failing on them.
+
+### 8 · Build the output
+
+**Redesign mode** — `ia.json` is this skill's deliverable. Hand it to the
+assessment skill's renderer:
+
+```bash
+python3 ../website-assessment/scripts/build_data.py --project <project>
+python3 ../website-assessment/scripts/build_site.py --project <project> \
+    --out <project>/out/report.html
+```
+
+Six views instead of four: Personas and Sitemap slot in beside the audit. Do
+not also build a standalone board — two documents saying the same thing
+diverge, and the client reads whichever one they opened last.
+
+**Greenfield mode** — `ia.json` plus the standalone board. Copy
+`assets/board-template.html`, fill it in, and save it as
+`<project>/out/sitemap-information-architecture.html`. The template contains
+the complete CSS, the layout skeleton, the personas block, one fully-worked
+example column showing the expected card quality, and HTML comments marking
+every insertion point. Keep the visual system exactly as-is (colours, tags,
+dashed Phase-2 style) — consistency across projects is part of the value.
 
 Every page column needs, in order:
-- **Column header**: page name + URL slug (templates marked like `(template)` with `{param}` slugs)
-- **"In plain words" box**: 2–3 sentences a non-technical client understands, ending with a *concrete example scenario* with a named actor ("a procurement manager filters to…"). This is mandatory for every column — it's what makes the document readable by the whole team.
-- **Section cards**: title + 1–2 sentence description that explains *why the section earns its place*, not just what it is. Tag each card with the relevant chips (UX / CRO / SEO / LEAD / language). A card with no reason to exist gets cut.
 
-### 4. Apply the quality bar
+- **Column header**: page name + URL slug (templates marked `(template)` with
+  `{param}` slugs)
+- **"In plain words" box**: 2–3 sentences a non-technical client understands,
+  ending with a concrete scenario with a named actor. Mandatory for every column
+- **Section cards**: title + 1–2 sentences explaining *why the section earns its
+  place*, with the relevant chips. A card with no reason to exist gets cut
 
-Before writing the file, check the design against these — they come from real review cycles:
+Fill the DB section following `references/methodology.md` § Database patterns,
+and prune the ~55-entry glossary to the terms the document actually uses.
 
-- **Home is 6–8 sections, not 12.** Merge overlapping sections (categories + featured items = one section; trust logos belong inside the hero). One lead hook on Home, not two competing ones.
-- **Phase discipline.** Anything that needs content the client won't have at launch (testimonials, case studies, blog teasers) or real build cost that isn't launch-critical (comparison tools) becomes a dashed Phase 2 card. Empty social proof placeholders hurt credibility — never ship them.
-- **One canonical URL per item.** Detail pages live at one URL regardless of navigation path (never nested under brand/category). Document this in the dev notes.
-- **A dedicated conversion landing page** (distraction-free, multi-step form, per-type thank-you pages) exists whenever paid media is plausible.
-- **FAQ is content-first.** Value = long-tail queries + AI answers (AI Overviews/ChatGPT). FAQ schema is optional — Google dropped FAQ rich results for most sites in 2023. One canonical FAQ hub; page-level FAQs stay short and link to it.
-- **Lead capture is layered by intent stage**: cold (newsletter/guide), warm (gated spec/detail downloads), hot (quote/booking forms). If the board has only one form, it's underbuilt.
+### 9 · Validate, then look at it
 
-### 5. Database & CMS section
+Both. Neither is optional because the run "went fine".
 
-Fill the DB section of the template following the modeling rules in `references/methodology.md` (§ Database patterns): content tables vs system tables vs Phase 2 tables (dashed — schema created at launch, populated later), field-level localization (never duplicate records per language), a single typed `leads` table, country/region as a dimension not a fork, and dev notes explaining each non-obvious decision so it doesn't get undone.
+```bash
+python3 scripts/validate_ia.py --ia <project>/ia.json
+python3 scripts/validate_ia.py --ia <project>/ia.json --board <project>/out/sitemap-*.html
+```
 
-### 6. Jargon dictionary
+Every `fid` must resolve against `findings.json`. It fails loudly with the JSON
+path of any that does not.
 
-The template's glossary contains ~55 pre-written definitions in four groups (Marketing & Conversion, SEO, UX & Design, Technical & Database). Prune terms the document doesn't use, add ones it does. Rule: every specialist term that appears anywhere on the board must have an entry.
+Then open the rendered output in a browser and check it:
 
-### 7. Deliver
+- Columns render, and nothing has collapsed into a single column
+- The phase toggle and the discipline filters change the visible counts
+- Evidence expanders open the **right** finding — click one and read it
+- The board scrolls correctly at mobile width, with no page-level horizontal
+  overflow
 
-Save as `sitemap-information-architecture.html` in the user's folder and present it. Summarize in a few sentences: page count, the conversion funnels, and 1–2 architecture decisions worth flagging (the kind a stakeholder might question later).
+### 10 · Deliver
+
+Present it in a few sentences: page count, the conversion funnels, and 1–2
+architecture decisions worth flagging — the kind a stakeholder might question
+later.
 
 ## Iterating after delivery
 
-Boards live through review rounds (client, SEO, dev). When feedback arrives, edit the existing file rather than regenerating — preserve everything not under discussion. When a decision is debated and settled (e.g. URL strategy), record the *reasoning* in a dev note or card so it doesn't get re-litigated.
+Boards live through review rounds (client, SEO, dev). When feedback arrives,
+edit the existing files rather than regenerating — preserve everything not
+under discussion, and keep `ia.json` and the rendered board in step. When a
+decision is debated and settled (e.g. URL strategy), record the *reasoning* in
+a dev note or card so it doesn't get re-litigated.
+
+## Files
+
+| Path | What it is |
+|---|---|
+| `assets/board-template.html` | The standalone board: full CSS, personas block, worked example column |
+| `scripts/validate_ia.py` | Validates ia.json — schema, ids, chips, phases, and every `fid` |
+| `references/project-contract.md` | The shared agreement with the other project skills |
+| `references/ia-schema.md` | The `ia.json` contract, field by field, and what is enforced |
+| `references/personas.md` | Grounding, honesty about the basis, and what each persona carries |
+| `references/methodology.md` | The reasoning rules: pages, tags, phases, SEO, DB patterns |
+
+## Things that go wrong
+
+**A `fid` that does not resolve.** Usually a finding was deleted after the IA
+cited it, or an id was retyped rather than copied. `validate_ia.py` names the
+JSON path. Fix the reference — never delete the check.
+
+**Copying audit text into `ia.json` instead of referencing it.** This is the one
+that does not error. A section card that quotes the finding reads better in
+review, and then someone rewords the finding — and the two documents disagree
+for the rest of the project, with nothing to signal it. Store the `fid`; the
+renderer resolves it and shows the current wording.
+
+**Inventing a `fid` on a greenfield project.** There is no audit, so there is
+nothing for it to point at. Emit none.
+
+**A second project folder.** The client already has one; a later run creates
+`client-2`; now there are two sitemaps and no way to tell which one the proposal
+quoted. Reuse the folder (contract §1).
+
+**Building a standalone board when an audit exists.** Two documents covering the
+same structure diverge, and the client reads whichever they opened last. In
+redesign mode `ia.json` is the deliverable and the shared renderer draws it.
+
+**Personas that decorate.** If cutting a persona would not remove a page, a
+section, a form field or a funnel, it was describing the market rather than
+shaping the site. Cut it.
+
+**Personas presented without their basis.** An unsourced persona reads as fact,
+gets quoted in a proposal, and becomes the reason a page exists. Say what it is
+built on — including when the answer is "nothing but the brief".
+
+**Empty social proof.** A "what clients say" section before there are clients is
+anti-proof. It is a dashed Phase 2 card, every time.
+
+**A card with no reason to exist.** If it earns no chip, it earns no place.
+`validate_ia.py` enforces this, because it is the rule that slips first when a
+board is being padded to look thorough.

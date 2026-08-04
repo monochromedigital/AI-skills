@@ -8,8 +8,8 @@ Each folder under `skills/` is a self-contained skill: a `SKILL.md` with YAML fr
 
 | Skill | What it does |
 | --- | --- |
-| [`website-assessment`](skills/website-assessment) | Section-by-section UX/UI/SEO/accessibility audit of a live site — typed to the kind of site it is (ecommerce, SaaS, service, corporate, publisher, marketplace, nonprofit/education) and backed by researched benchmarks — delivered as a branded PPTX deck and/or Figma slides with numbered markers pinned to the exact elements. |
-| [`sitemap-ia-board`](skills/sitemap-ia-board) | Full visual sitemap + information architecture board as a single HTML artifact — page columns, section cards tagged for UX/CRO/SEO, conversion-flow logic, and a CMS spec for developers. |
+| [`website-assessment`](skills/website-assessment) | Section-by-section UX/UI/SEO/accessibility audit of a live site — typed to the kind of site it is (ecommerce, SaaS, service, corporate, publisher, marketplace, nonprofit/education) and backed by researched benchmarks — delivered as an interactive web report, a branded PPTX deck, and/or Figma slides — all with numbered markers pinned to the exact elements. |
+| [`sitemap-ia-board`](skills/sitemap-ia-board) | Full visual sitemap + information architecture board — evidence-grounded personas, page columns, section cards tagged for UX/CRO/SEO, conversion-flow logic, and a CMS spec for developers. Emits a structured `ia.json` plus either a standalone HTML board or a combined report rendered alongside an existing audit. |
 | [`psychology-of-design`](skills/psychology-of-design) | Catalog of 50 behavioral-psychology and cognitive-bias principles for designing, reviewing, and improving interfaces and conversion flows. |
 | [`linear-ticket-writing`](skills/linear-ticket-writing) | Turns vague tasks into Linear tickets that an agent can execute end-to-end — full context, explicit constraints, testable acceptance criteria, MCP-ready formatting. |
 | [`morning`](skills/morning) | Renders a styled morning brief as an HTML artifact, or sets it up as a recurring weekday task. |
@@ -53,4 +53,5 @@ skills/<skill-name>/
 - One skill, one job. If a description needs "and also", it's two skills.
 - Descriptions are written for triggering. Include the words a user says, not just the words a designer would.
 - Anything brand-specific lives in `assets/brand.json` so a skill can be re-pointed at a different client without editing `SKILL.md`.
+- Skills that work on the same client project share `references/project-contract.md` — one project folder, one writer per file, content-derived ids for cross-document references, and defined behaviour when a file is absent. `website-assessment` and `sitemap-ia-board` both carry a copy; keep them identical.
 - Skills bundled by Anthropic (`docx`, `pdf`, `pptx`, `xlsx`, `skill-creator`) are deliberately **not** vendored here — they ship with the product and carry their own license.
