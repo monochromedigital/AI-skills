@@ -2,10 +2,16 @@
 # Package a skill folder into a .skill bundle (a zip Claude can install).
 #   ./package.sh website-assessment     -> dist/website-assessment.skill
 #   ./package.sh                        -> packages every skill
+#
+# Regenerates scripts/check_prose_standalone.py first. That step also verifies
+# the files the project contract requires to be identical across skills really
+# are, so a drifted copy fails the build here rather than in a client's report.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 mkdir -p dist
+
+python3 scripts/build_standalone.py
 
 package() {
   local name="$1"

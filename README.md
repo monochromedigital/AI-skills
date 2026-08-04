@@ -33,6 +33,35 @@ cp -r AI-skills/skills/website-assessment ~/.claude/skills/
 
 This produces `dist/website-assessment.skill`, which can be uploaded in Claude's skill settings.
 
+## Repo-level scripts
+
+`scripts/check_prose_standalone.py` is a portable copy of the AI-writing checker
+that `website-assessment` and `sitemap-ia-board` both carry. The in-skill
+version reads its word lists from `assets/ai-writing.json` next to it; this one
+has them embedded, so it runs anywhere:
+
+```bash
+python3 scripts/check_prose_standalone.py --project <project-folder>
+python3 scripts/check_prose_standalone.py --file <anywhere>/findings.json
+```
+
+Use it against a session that predates the skill update, or any `findings.json`
+or `ia.json` sitting on disk. Drag it into a chat and it works there too.
+
+**It is generated — do not edit it.** Change the word lists in
+`skills/*/assets/ai-writing.json` and rebuild:
+
+```bash
+python3 scripts/build_standalone.py           # regenerate
+python3 scripts/build_standalone.py --check   # fail if the committed copy is stale
+```
+
+`package.sh` runs the regeneration first, so building the bundles cannot ship a
+stale checker. That step also verifies the files the project contract requires
+to be byte-identical across skills actually are — `ai-writing.json`,
+`check_prose.py`, `ai-writing.md` and `project-contract.md`. A drifted copy
+fails the build here rather than in a client's report.
+
 ## Adding a skill
 
 1. Create `skills/<skill-name>/SKILL.md`.
