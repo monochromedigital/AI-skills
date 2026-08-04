@@ -118,9 +118,11 @@ there is a finding you do not have to argue for.
 
 Read `references/categories.md` for what to look for per category and how to
 assign severity, then the site-type file for what that checklist cannot know,
-and `references/voice.md` for how findings are phrased. If the
-`psychology-of-design` skill is available, read it before writing UX and CRO
-findings so principle citations are accurate rather than decorative.
+`references/voice.md` for how findings are phrased, and
+`references/ai-writing.md` for the vocabulary that makes a deliverable read as
+generated. If the `psychology-of-design` skill is available, read it before
+writing UX and CRO findings so principle citations are accurate rather than
+decorative.
 
 Work section by section, in page order, and cover the type's decisive journey
 even where it is unglamorous — the checkout and the pricing page carry more
@@ -145,11 +147,18 @@ essentials:
 Then the summary narrative: three short paragraphs, diagnosis → pattern →
 gaps. The counts grid is generated automatically.
 
-Then stamp the ids. Every finding needs one before anything can reference it:
+Then stamp the ids, and check the prose. Every finding needs an id before
+anything can reference it, and no finding should reach a client carrying the
+vocabulary of a document nobody wrote:
 
 ```bash
 python3 scripts/finding_ids.py --findings <project>/findings.json
+python3 scripts/check_prose.py --project <project>
 ```
+
+Quoting the client's own copy is exempt from the prose check — quoted text is
+skipped — so `The hero reads "leverage our comprehensive platform"` passes and
+is usually the stronger observation anyway.
 
 ### 6 · Build
 
@@ -190,6 +199,16 @@ installed it yet.
 ### 7 · Verify before delivering
 
 Non-negotiable, for whichever output was built.
+
+**Prose, before anything is rendered** — the deck and the report both draw from
+`findings.json`, so this runs once and covers both:
+
+```bash
+python3 scripts/check_prose.py --project <project>
+```
+
+It fails with the JSON path of every field carrying AI-writing vocabulary.
+Rewrite them; do not silence the check.
 
 **Web report** — open the built file in Chromium via Playwright and screenshot
 every view at desktop (1440) and mobile (390) width, then check:
@@ -244,10 +263,12 @@ edit that file, never hard-code a value in a script.
 | Path | What it is |
 |---|---|
 | `assets/brand.json` | Colours, type scale, layout fractions. Single source of truth |
+| `assets/ai-writing.json` | The AI-writing word lists. Edit here, never a pasted copy |
 | `assets/fonts/` | Urbanist TTFs (OFL) for installing locally |
 | `scripts/capture.py` | Playwright capture — sections, element boxes, technical evidence |
 | `scripts/frame.py` | Wraps screenshots in the device frame, reports `screen_rect` |
 | `scripts/finding_ids.py` | Stamps stable ids into findings.json. The only script that writes it |
+| `scripts/check_prose.py` | Flags AI-writing vocabulary in the client-facing prose, by JSON path |
 | `scripts/build_deck.py` | findings.json → PPTX |
 | `scripts/build_data.py` | project folder → report-data.json (the renderer's input) |
 | `scripts/build_site.py` | report-data.json + optional ia.json → interactive web report |
@@ -259,6 +280,7 @@ edit that file, never hard-code a value in a script.
 | `references/research.md` | The mandatory live-browsing and benchmark research step |
 | `references/categories.md` | Category definitions, checklists, severity, principles |
 | `references/voice.md` | How findings are phrased; audience variants |
+| `references/ai-writing.md` | Writing that does not read as generated, and which upstream rules do not apply here |
 | `references/schema.md` | findings.json contract and marker coordinates |
 | `references/figma-setup.md` | Plugin install and use |
 
@@ -301,6 +323,12 @@ Pagination is automatic; never pre-split a section.
 
 **Urbanist missing.** The deck names the font; the viewer needs it installed.
 `assets/fonts/` has the TTFs. The Figma plugin falls back to Inter and says so.
+
+**Prose that reads as generated.** A deck of findings written in "robust",
+"comprehensive", "seamless" and "leverage" undoes the one thing the audit is
+selling — that somebody actually looked. `check_prose.py` catches the
+vocabulary; it cannot catch a sentence that says nothing, which is what
+`voice.md` is for. Passing the check is the floor, not the standard.
 
 **Findings that are really opinions.** "The design feels dated" is not a finding.
 Name the element, the effect on the user, and the change. If it cannot be

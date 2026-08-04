@@ -65,6 +65,21 @@ minimum`.
 | "users may find it confusing" | say what they cannot do |
 | "consider adding", "you might want to" | state the fix directly |
 | "leverage", "utilise", "solutioning" | use, use, work |
+| "robust", "comprehensive", "seamless", "holistic" | name the property you mean |
+| "it's worth noting", "in terms of" | delete and start the sentence at the point |
+
+That table is the short version. The full list is machine-checked — see
+`references/ai-writing.md` and run:
+
+```bash
+python3 scripts/check_prose.py --project <project>
+```
+
+Text inside double quotes is exempt, so quoting the client's own copy back at
+them never trips it. Quoting is usually the strongest form the observation can
+take, and the check is built to encourage it rather than punish it.
+
+Passing that check is the floor. Everything above this line is the standard.
 
 ## Audience variants
 

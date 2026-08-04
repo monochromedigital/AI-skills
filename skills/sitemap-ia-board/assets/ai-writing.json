@@ -1,0 +1,93 @@
+{
+  "_comment": "Word and phrase lists for scripts/check_prose.py. Edit here only - the reference doc describes the rules, this file holds the data, so the two cannot drift. Keep this file byte-identical in every skill that carries it.",
+  "_source": "Tiers 1-3, template phrases, transitions and artifacts adapted from avoid-ai-writing by Conor Bronsdon (MIT), https://github.com/conorbronsdon/avoid-ai-writing. Trimmed to what applies to client deliverables and extended with the agency-specific entries below. See references/ai-writing.md for the rules that were deliberately left out.",
+  "_license": "MIT (upstream). This subset carries the same terms.",
+
+  "tier1": {
+    "_rule": "Always an error. These read as generated on sight.",
+    "words": [
+      "delve", "landscape", "tapestry", "realm", "paradigm", "embark", "beacon",
+      "robust", "comprehensive", "cutting-edge", "leverage", "leveraging", "pivotal",
+      "underscores", "underscoring", "meticulous", "meticulously", "seamless",
+      "seamlessly", "game-changer", "game-changing", "utilize", "utilise", "vibrant",
+      "thriving", "bustling", "intricate", "complexities", "ever-evolving", "enduring",
+      "daunting", "holistic", "actionable", "impactful", "learnings", "synergy",
+      "synergies", "interplay", "solutioning"
+    ],
+    "phrases": [
+      "watershed moment", "deep dive", "thought leader", "thought leadership",
+      "best practices", "best practice", "in today's fast-paced", "in the ever-evolving"
+    ]
+  },
+
+  "tier2": {
+    "_rule": "An error when two or more appear in the same field. One is ordinary English; three in a paragraph is a fingerprint.",
+    "words": [
+      "harness", "navigate", "foster", "elevate", "unleash", "streamline", "empower",
+      "bolster", "spearhead", "resonate", "revolutionize", "revolutionise", "facilitate",
+      "underpin", "nuanced", "crucial", "multifaceted", "ecosystem", "myriad", "plethora",
+      "encompass", "catalyze", "catalyse", "reimagine", "galvanize", "galvanise",
+      "augment", "cultivate", "illuminate", "elucidate", "juxtapose", "transformative",
+      "cornerstone", "paramount", "poised", "burgeoning", "nascent", "quintessential",
+      "overarching"
+    ],
+    "phrases": []
+  },
+
+  "tier3": {
+    "_rule": "A warning, never an error. Ordinary words that only signal anything in bulk - reported when a single field carries three or more, so a real sentence is never blocked.",
+    "words": [
+      "significant", "significantly", "innovative", "effective", "dynamic", "scalable",
+      "compelling", "unprecedented", "exceptional", "remarkable", "sophisticated",
+      "instrumental", "world-class", "state-of-the-art", "best-in-class"
+    ],
+    "phrases": []
+  },
+
+  "artifacts": {
+    "_rule": "Always an error. Every one of these has reached a client at least once somewhere.",
+    "words": [],
+    "phrases": [
+      "i hope this helps", "let's dive in", "lets dive in", "in this article",
+      "in this report we will", "great question", "excellent point",
+      "let me think step by step", "breaking this down", "it's worth noting",
+      "it is worth noting", "interestingly,", "notably,",
+      "citeturn", "oai_citation", "utm_source=chatgpt.com", "referrer=grok.com",
+      "[your name]", "[insert", "[client name]", "xx-xx"
+    ]
+  },
+
+  "filler": {
+    "_rule": "Always an error. Words spent before the sentence starts.",
+    "words": ["moreover", "furthermore"],
+    "phrases": [
+      "in terms of", "when it comes to", "the reality is that", "at the end of the day",
+      "that being said", "in conclusion", "in summary", "it is important to note",
+      "it's important to note", "in an era where", "in today's", "needless to say",
+      "first and foremost"
+    ]
+  },
+
+  "hollow": {
+    "_rule": "Always an error. Judgement with nothing behind it, hedges that refuse to commit, and conclusions that say nothing.",
+    "words": ["clearly", "obviously", "simply", "truly", "genuinely"],
+    "phrases": [
+      "could potentially", "might eventually", "may potentially", "worth noting that",
+      "experts believe", "studies show", "research suggests", "it is widely believed",
+      "the future looks bright", "only time will tell", "a step towards",
+      "a step toward", "whether you're", "whether you are",
+      "i recently had the pleasure", "let's be clear", "here's the thing",
+      "the catch?", "the kicker?"
+    ]
+  },
+
+  "agency": {
+    "_rule": "Always an error. Specific to audit and IA writing - each one was already banned in voice.md, and each is a finding that has stopped being a finding.",
+    "words": ["bad", "ugly", "terrible", "modern", "clean", "sleek", "beautiful", "stunning"],
+    "phrases": [
+      "consider adding", "you might want to", "we noticed that", "users may find",
+      "user-friendly", "look and feel", "take it to the next level",
+      "in order to improve", "best-in-breed"
+    ]
+  }
+}

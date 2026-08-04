@@ -135,6 +135,13 @@ review cycles:
 Read `references/ia-schema.md` and write it into the project folder. This is
 the file the shared renderer consumes, and the record any later skill reads.
 
+Read `references/ai-writing.md` before writing any of its prose. The
+In-plain-words boxes, the section descriptions, the persona context and the
+evidence note are the parts a client actually reads, and they are exactly where
+"a robust, holistic ecosystem that empowers users" creeps in. A board written
+that way reads as a template with the client's name dropped into it, which is
+the opposite of what an IA is meant to prove.
+
 It is a **serialisation of the thinking above, not a replacement for it**. The
 quality bar, phase discipline, lead-capture layering and the In-plain-words
 formula all still apply — do the work, then write it down in this shape.
@@ -184,10 +191,15 @@ Both. Neither is optional because the run "went fine".
 ```bash
 python3 scripts/validate_ia.py --ia <project>/ia.json
 python3 scripts/validate_ia.py --ia <project>/ia.json --board <project>/out/sitemap-*.html
+python3 scripts/check_prose.py --project <project>
 ```
 
 Every `fid` must resolve against `findings.json`. It fails loudly with the JSON
 path of any that does not.
+
+`check_prose.py` does the same for the writing, flagging AI-writing vocabulary
+by JSON path. Text inside double quotes is exempt, so quoting the client's own
+copy never trips it.
 
 Then open the rendered output in a browser and check it:
 
@@ -216,11 +228,14 @@ a dev note or card so it doesn't get re-litigated.
 | Path | What it is |
 |---|---|
 | `assets/board-template.html` | The standalone board: full CSS, personas block, worked example column |
+| `assets/ai-writing.json` | The AI-writing word lists. Edit here, never a pasted copy |
 | `scripts/validate_ia.py` | Validates ia.json — schema, ids, chips, phases, and every `fid` |
+| `scripts/check_prose.py` | Flags AI-writing vocabulary in the client-facing prose, by JSON path |
 | `references/project-contract.md` | The shared agreement with the other project skills |
 | `references/ia-schema.md` | The `ia.json` contract, field by field, and what is enforced |
 | `references/personas.md` | Grounding, honesty about the basis, and what each persona carries |
 | `references/methodology.md` | The reasoning rules: pages, tags, phases, SEO, DB patterns |
+| `references/ai-writing.md` | Writing that does not read as generated, and which upstream rules do not apply here |
 
 ## Things that go wrong
 
@@ -255,6 +270,13 @@ built on — including when the answer is "nothing but the brief".
 
 **Empty social proof.** A "what clients say" section before there are clients is
 anti-proof. It is a dashed Phase 2 card, every time.
+
+**In-plain-words boxes that are not plain.** The formula exists because the
+box is the one part of the board a non-specialist reads end to end. "This page
+serves as a comprehensive gateway to our robust service ecosystem" fails it
+twice — no metaphor, no named actor, and the vocabulary of a document nobody
+wrote. `check_prose.py` catches the words; the formula in
+`references/methodology.md` is what makes the sentence worth reading.
 
 **A card with no reason to exist.** If it earns no chip, it earns no place.
 `validate_ia.py` enforces this, because it is the rule that slips first when a
