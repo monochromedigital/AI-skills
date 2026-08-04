@@ -34,14 +34,20 @@ call, not four.
    `references/project-contract.md` §1–§2 first: if `project.json` is already
    in the folder, the client, URL, market, audience and languages are settled
    and you do not ask for them again
-2. **Which pages** — a single page, the decisive journey for this kind of site
+2. **Which agency** — ALL IN, Crackwits, Daydream or Monochrome. It sets the
+   palette, the footers and the logo on every deliverable, and it is written
+   into `project.json` so no later skill asks again (contract §2a). If
+   `project.json` already carries `agency`, do not ask — it is settled.
+   **There is no default and nothing to fall back to**: the four are peers, so
+   the question is never skipped and never answered by inference
+3. **Which pages** — a single page, the decisive journey for this kind of site
    (the site-type file lists it), or the whole site
-3. **Audience** — prospect, existing client, or internal scoping. This changes
+4. **Audience** — prospect, existing client, or internal scoping. This changes
    framing and finding count, not the findings themselves (see `references/voice.md`)
-4. **Output** — four options:
+5. **Output** — four options:
    - **Interactive web report (HTML)** — a filterable, browsable report with the
      annotations pinned onto the page screenshots
-   - **PPTX deck** — the existing Crackwits assessment deck
+   - **PPTX deck** — the assessment deck, in the chosen agency's branding
    - **Both** — deck for the meeting, web report for the follow-up
    - **Figma slides** — the existing plugin route
 
@@ -262,13 +268,16 @@ edit that file, never hard-code a value in a script.
 
 | Path | What it is |
 |---|---|
-| `assets/brand.json` | Colours, type scale, layout fractions. Single source of truth |
+| `assets/brand.json` | The **base** brand: category colours, severity, type scale, layout fractions. Byte-identical in `sitemap-ia-board` |
+| `assets/brands/<slug>/` | Per-agency overlay + logos. One folder per agency (contract §2a) |
 | `assets/ai-writing.json` | The AI-writing word lists. Edit here, never a pasted copy |
 | `assets/fonts/` | Urbanist TTFs (OFL) for installing locally |
 | `scripts/capture.py` | Playwright capture — sections, element boxes, technical evidence |
 | `scripts/frame.py` | Wraps screenshots in the device frame, reports `screen_rect` |
 | `scripts/finding_ids.py` | Stamps stable ids into findings.json. The only script that writes it |
 | `scripts/check_prose.py` | Flags AI-writing vocabulary in the client-facing prose, by JSON path |
+| `scripts/brandkit.py` | Resolves which agency a run wears. Byte-identical in `sitemap-ia-board` |
+| `scripts/fetch_logo.py` | Pulls a **client** logo from Brandfetch into `<project>/logos/` |
 | `scripts/build_deck.py` | findings.json → PPTX |
 | `scripts/build_data.py` | project folder → report-data.json (the renderer's input) |
 | `scripts/render_report.py` | All the CSS, JS and HTML. Byte-identical in `sitemap-ia-board` |
@@ -341,9 +350,53 @@ client's own page must have been fetched during this session and recorded in
 
 **Too many Critical findings.** If everything is urgent, nothing gets fixed.
 
-## Rebranding for another agency
+## Working under more than one agency
 
-Everything visual is in `assets/brand.json`: agency name, footer strings,
-colours, category set, type scale, layout fractions. Change it there and both
-renderers follow. The Figma plugin accepts the same file as a drop-in override,
-so a different agency needs no code changes.
+The agency is a property of the project, not of the skill. It is asked once, in
+the opening question, written into `project.json` as `agency`, and read by
+every later skill — so the audit, the deck and the board cannot end up branded
+three different ways. Contract §2a is the full rule.
+
+```bash
+python3 scripts/brandkit.py          # what is installed, and which have logos
+```
+
+Adding an agency is one folder:
+
+```
+assets/brands/<slug>/brand.json      only what differs from assets/brand.json
+assets/brands/<slug>/logo-dark.svg   optional — the header and slides are dark
+assets/brands/<slug>/logo.svg        optional — for light surfaces
+```
+
+`assets/brand.json` is the shared base and belongs to **no agency**. It carries
+the category colours, the severity colours, the type scale, the deck geometry —
+and a neutral grey palette that is a placeholder rather than anyone's brand. It
+is not edited per agency: an agency file is an overlay, deep-merged on top.
+Copying the base and editing it means the next change to a category colour has
+to be made in four places, and will be made in three.
+
+The neutral base is what makes an incomplete agency file safe. A palette with
+half its keys missing renders in grey, which reads as unfinished, and the build
+prints which keys fell through. Had the base stayed Crackwits, the same mistake
+would have rendered as a finished-looking Crackwits document.
+
+Category and severity colours deliberately stay shared. They are functional
+encoding — a client who reads three of these learns that orange means UX — and
+an agency that recolours them is making its own documents harder to read.
+Nothing forbids it; it just has to be typed into the agency file rather than
+inherited by accident.
+
+`--agency <slug>` on any build script overrides for one run without recording
+it. **There is no default**: a run with no agency set fails, exactly as an
+unknown slug does. The four agencies are peers, and every other missing input
+changes what the document contains — wrong branding changes nothing visible, so
+the build is the only place it can be caught.
+
+A missing logo renders the agency name as text, which is what happened before
+logos existed. That is a degradation, not a failure — a broken image in a
+document already sent to a client is the worse outcome. Logos are embedded as
+data URIs, never linked: these documents have to open offline.
+
+The Figma plugin accepts a merged brand file as a drop-in override, so it needs
+no code changes either.

@@ -137,6 +137,8 @@ header.top{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1
 .top-in{display:flex;align-items:center;gap:24px;padding:14px 26px;max-width:1680px;margin:0 auto}
 .brandmark{font-weight:600;font-size:15px;white-space:nowrap}
 .brandmark small{display:block;font-weight:300;font-size:11.5px;color:var(--footer);letter-spacing:.02em}
+.agencylogo{display:block;height:20px;width:auto;max-width:150px;margin:0 0 5px}
+@media(max-width:640px){.agencylogo{height:16px;max-width:110px}}
 nav.views{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
 nav.views::-webkit-scrollbar{display:none}
 nav.views a{text-decoration:none;padding:7px 14px;border-radius:999px;font-size:13.5px;
@@ -1091,7 +1093,7 @@ HTML = r"""<!doctype html>
 </head>
 <body>
 <header class="top"><div class="top-in">
-  <div class="brandmark">__CLIENT__<small>__AGENCY__ · __KIND__</small></div>
+  <div class="brandmark">__LOGO____CLIENT__<small>__AGENCY__ · __KIND__</small></div>
   <nav class="views">__NAV__</nav>
   <div class="top-meta">__URL__<br>__DATE__</div>
 </div></header>
@@ -1111,8 +1113,25 @@ def render_css(colors, assets_dir):
     return css
 
 
+def agency_logo_html(meta):
+    """The header sits on --bg, so the caller passes the dark-background
+    variant. Absent is a legitimate state - the agency name is already in the
+    sub-line, so a missing logo costs nothing but polish, and a broken <img>
+    in a document sent to a client costs rather more.
+
+    The URI is embedded, never linked. A report that phones out for its own
+    logo shows a broken image the first time someone opens it on a plane."""
+    uri = (meta or {}).get("logo_uri") or ""
+    if not uri:
+        return ""
+    alt = (str((meta or {}).get("agency", ""))
+           .replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")) or "Agency"
+    return '<img class="agencylogo" src="%s" alt="%s">' % (uri, alt)
+
+
 def render(brand, meta, model, ia, assets_dir, cost_bands=None):
-    """brand: brand.json dict. meta: client/url/date/kind/lede/agency/footers.
+    """brand: brand.json dict. meta: client/url/date/kind/lede/agency/footers,
+    plus optional logo_uri (a data URI for the dark-background agency logo).
     model: report-data.json dict or None. ia: ia.json dict or None."""
     views = views_for(model, ia)
 
@@ -1137,6 +1156,7 @@ def render(brand, meta, model, ia, assets_dir, cost_bands=None):
             .replace("__JS__", JS)
             .replace("__DATA__", data)
             .replace("__TITLE__", "%s — %s" % (meta["client"], meta["kind"]))
+            .replace("__LOGO__", agency_logo_html(meta))
             .replace("__CLIENT__", meta["client"])
             .replace("__AGENCY__", meta.get("agency", ""))
             .replace("__KIND__", meta["kind"])

@@ -40,11 +40,17 @@ WORDS = "assets/ai-writing.json"
 SHARED = [
     "assets/ai-writing.json",
     "assets/brand.json",
+    "scripts/brandkit.py",
     "scripts/check_prose.py",
     "scripts/render_report.py",
     "references/ai-writing.md",
     "references/project-contract.md",
 ]
+
+# Directory trees under the same rule. The agency overlays decide what a
+# document looks like, so a palette edited in one skill and not the other is
+# how an audit and its board end up branded as different agencies.
+SHARED_TREES = ["assets/brands"]
 
 ANCHOR_ROOT = 'ROOT = Path(__file__).resolve().parent.parent\nWORDS_FILE = ROOT / "assets" / "ai-writing.json"'
 ANCHOR_LOAD = re.compile(
@@ -64,18 +70,42 @@ HEADER = '''# ------------------------------------------------------------------
 '''
 
 
+def tree_digest(root):
+    """One hash over a directory's relative paths and contents."""
+    h = hashlib.sha256()
+    for f in sorted(p for p in root.rglob("*") if p.is_file()):
+        h.update(str(f.relative_to(root)).encode("utf-8"))
+        h.update(b"\0")
+        h.update(f.read_bytes())
+    return h.hexdigest()
+
+
 def check_shared():
     """Every skill carrying one of the shared files must carry the same bytes."""
     problems = []
+    skill_dirs = sorted(p for p in SKILLS.iterdir() if p.is_dir())
+
+    def compare(rel, digests):
+        if len(set(digests.values())) > 1:
+            problems.append("%s differs across skills: %s" % (
+                rel, ", ".join("%s=%s" % (k, v[:8]) for k, v in sorted(digests.items()))))
+
     for rel in SHARED:
         copies = {}
-        for skill_dir in sorted(p for p in SKILLS.iterdir() if p.is_dir()):
+        for skill_dir in skill_dirs:
             f = skill_dir / rel
             if f.exists():
                 copies[skill_dir.name] = hashlib.sha256(f.read_bytes()).hexdigest()
-        if len(set(copies.values())) > 1:
-            problems.append("%s differs across skills: %s" % (
-                rel, ", ".join("%s=%s" % (k, v[:8]) for k, v in sorted(copies.items()))))
+        compare(rel, copies)
+
+    for rel in SHARED_TREES:
+        copies = {}
+        for skill_dir in skill_dirs:
+            d = skill_dir / rel
+            if d.is_dir():
+                copies[skill_dir.name] = tree_digest(d)
+        compare(rel + "/", copies)
+
     return problems
 
 

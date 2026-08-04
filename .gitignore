@@ -6,5 +6,6 @@ venv/
 node_modules/
 dist/
 *.skill
+*.zip
 .env
 *.log
