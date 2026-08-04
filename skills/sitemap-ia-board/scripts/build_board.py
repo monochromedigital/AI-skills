@@ -33,12 +33,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import render_report as R          # noqa: E402
+import brandkit                   # noqa: E402
 from validate_ia import validate, load_finding_ids   # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def build(project_dir, ia_path, out):
+def build(project_dir, ia_path, out, agency_slug=None):
     project_dir = Path(project_dir)
     ia_path = Path(ia_path) if ia_path else (project_dir / "ia.json")
     if not ia_path.exists():
@@ -69,7 +70,11 @@ def build(project_dir, ia_path, out):
 
     project_path = project_dir / "project.json"
     project = json.loads(project_path.read_text(encoding="utf-8")) if project_path.exists() else {}
-    brand = json.loads((ROOT / "assets" / "brand.json").read_text(encoding="utf-8"))
+    try:
+        brand, brand_info = brandkit.resolve(project_dir, project, agency_slug)
+    except brandkit.BrandError as e:
+        print("build_board.py: %s" % e, file=sys.stderr)
+        sys.exit(1)
     agency = brand.get("agency", {})
 
     pages = ia.get("pages", []) or []
@@ -87,6 +92,7 @@ def build(project_dir, ia_path, out):
         "site_type": project.get("site_type", ""),
         "footer_left": agency.get("footer_left", "").replace("{year}", str(date.today().year)),
         "footer_right": "Sitemap & Information Architecture",
+        "logo_uri": brand_info.get("logo_uri", ""),
     }
 
     html = R.render(brand, meta, None, ia, ROOT / "assets")
@@ -105,6 +111,9 @@ def build(project_dir, ia_path, out):
         "glossary": len(ia.get("glossary", []) or []),
         "bytes": out.stat().st_size,
         "mb": round(out.stat().st_size / 1048576.0, 2),
+        "agency": agency.get("name", ""),
+        "agency_slug": brand_info.get("slug") or "",
+        "logo": bool(brand_info.get("logo_uri")),
     }
 
 
@@ -113,8 +122,9 @@ def main():
     ap.add_argument("--project", required=True, help="the project folder (contract §1)")
     ap.add_argument("--ia", default="", help="default: <project>/ia.json")
     ap.add_argument("--out", required=True, help="output .html")
+    brandkit.add_agency_arg(ap)
     a = ap.parse_args()
-    print(json.dumps(build(a.project, a.ia or None, a.out), indent=2))
+    print(json.dumps(build(a.project, a.ia or None, a.out, a.agency or None), indent=2))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+{
+  "_comment": "Monochrome overlay. TODO: replace the palette with the real brand values before the first client run. Only the keys that differ from assets/brand.json belong here - anything omitted is inherited, including all seven category colours, which stay constant across agencies on purpose.",
+  "agency": {
+    "name": "Monochrome",
+    "footer_left": "Monochrome © {year}. All Rights Reserved",
+    "footer_right": "Website UX/UI Assessment"
+  },
+  "colors": {
+    "background": "#1A1A1A",
+    "surface": "#242424",
+    "surface_sunken": "#141414",
+    "border": "#333333",
+    "border_strong": "#454545",
+    "border_dashed": "#5A5A5A",
+    "on_dark": "#D4D4D4",
+    "on_dark_muted": "#8C8C8C",
+    "footer": "#8C8C8C",
+    "eyebrow": "#C8A15A"
+  }
+}

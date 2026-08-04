@@ -1,9 +1,9 @@
 {
-  "_comment": "Crackwits deck and report tokens. Colours sampled from the reference slides and the reference report. Change values here only - every script reads from this file, and it must stay byte-identical in every skill that carries it.",
+  "_comment": "SHARED BASE - not any agency's brand. Carries only what every agency has in common: the seven category colours, the three severity colours, the type scale and all deck layout geometry. The palette here is a deliberate neutral grey that belongs to nobody, so an incomplete agency file renders as visibly unbranded rather than as some other agency's work. Per-agency values live in assets/brands/<slug>/brand.json. Must stay byte-identical in every skill that carries it.",
   "agency": {
-    "name": "Crackwits",
-    "footer_left": "Crackwits © {year}. All Rights Reserved",
-    "footer_right": "Website UX/UI Assessment"
+    "name": "",
+    "footer_left": "",
+    "footer_right": ""
   },
   "slide": {
     "width_px": 3840,
@@ -11,25 +11,25 @@
     "aspect": "16:9"
   },
   "colors": {
-    "background": "#312F31",
+    "background": "#2B2B2B",
     "panel": "#FFFFFF",
-    "card": "#F8F7F8",
-    "eyebrow": "#1E8FD9",
+    "card": "#F7F7F7",
+    "eyebrow": "#6E6E6E",
     "title": "#FFFFFF",
-    "body": "#312F31",
-    "body_muted": "#636163",
-    "marker": "#866FBC",
+    "body": "#2B2B2B",
+    "body_muted": "#606060",
+    "marker": "#6E6E6E",
     "marker_text": "#FFFFFF",
     "tag_text": "#FFFFFF",
-    "footer": "#8A888A",
+    "footer": "#8A8A8A",
     "rule": "#E5E5E5",
-    "surface": "#3A383A",
-    "surface_sunken": "#2B292B",
-    "border": "#494749",
-    "border_strong": "#5A585A",
-    "border_dashed": "#6A686A",
-    "on_dark": "#C9C7C9",
-    "on_dark_muted": "#8A888A"
+    "surface": "#353535",
+    "surface_sunken": "#232323",
+    "border": "#454545",
+    "border_strong": "#565656",
+    "border_dashed": "#666666",
+    "on_dark": "#C8C8C8",
+    "on_dark_muted": "#8A8A8A"
   },
   "categories": {
     "Copy / Content": {

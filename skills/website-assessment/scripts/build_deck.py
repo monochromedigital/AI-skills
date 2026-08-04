@@ -18,6 +18,7 @@ Usage:
 
 import argparse
 import json
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -27,6 +28,9 @@ from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Emu, Pt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import brandkit                       # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 BRAND = json.loads((ROOT / "assets" / "brand.json").read_text())
@@ -42,6 +46,30 @@ L = BRAND["layout"]
 T = BRAND["type"]
 CATS = BRAND["categories"]
 SEV = BRAND["severity"]
+
+AGENCY_LOGO = {"path": None}
+
+
+def set_brand(brand, logo_path=None):
+    """Rebinds the module globals to a resolved brand.
+
+    The globals are how ~40 drawing functions read colour and layout, and
+    threading a brand argument through all of them would be a large diff for
+    no benefit - the deck builds one presentation per process. This is called
+    once, at the top of build(), before any slide is drawn.
+
+    Before this existed the deck ignored project.json entirely and every deck
+    came out in the default agency's palette regardless of whose client it
+    was.
+    """
+    global BRAND, C, L, T, CATS, SEV
+    BRAND = brand
+    C = brand["colors"]
+    L = brand["layout"]
+    T = brand["type"]
+    CATS = brand["categories"]
+    SEV = brand["severity"]
+    AGENCY_LOGO["path"] = logo_path
 
 # Toggled from findings.json meta; lets a deck run denser by dropping
 # the optional per-finding lines.
@@ -518,9 +546,22 @@ def priority_slide(prs, meta, ranked):
 
 
 # ------------------------------------------------------------------ main
-def build(findings_path, root, out_path):
+def build(findings_path, root, out_path, project_dir=None, agency=None):
     data = json.loads(Path(findings_path).read_text())
     meta = data.get("meta", {})
+
+    # Resolve branding before any slide is drawn. project_dir defaults to the
+    # findings file's own folder, which is the project folder in every normal
+    # run (contract §1) - so the deck picks up the agency without being told
+    # twice.
+    pdir = Path(project_dir) if project_dir else Path(findings_path).resolve().parent
+    project = brandkit.load_project(pdir)
+    try:
+        brand, binfo = brandkit.resolve(pdir, project, agency)
+    except brandkit.BrandError as e:
+        print("build_deck.py: %s" % e, file=sys.stderr)
+        sys.exit(1)
+    set_brand(brand, binfo.get("logo_dark"))
     SHOW["fix"] = meta.get("show_fix", True)
     SHOW["principle"] = meta.get("show_principle", True)
     SHOW["benchmark"] = meta.get("show_benchmark", True)
@@ -576,8 +617,13 @@ def main():
     ap.add_argument("--findings", required=True)
     ap.add_argument("--root", default=".")
     ap.add_argument("--out", default="assessment.pptx")
+    ap.add_argument("--project", default="",
+                    help="the project folder (contract §1). Default: the "
+                         "findings file's own folder")
+    brandkit.add_agency_arg(ap)
     a = ap.parse_args()
-    print(json.dumps(build(a.findings, a.root, a.out), indent=2))
+    print(json.dumps(build(a.findings, a.root, a.out,
+                           a.project or None, a.agency or None), indent=2))
 
 
 if __name__ == "__main__":

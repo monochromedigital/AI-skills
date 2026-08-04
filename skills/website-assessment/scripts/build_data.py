@@ -31,6 +31,9 @@ from collections import OrderedDict
 from datetime import date
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import brandkit                       # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 BRAND_DEFAULT = ROOT / "assets" / "brand.json"
 
@@ -78,16 +81,16 @@ def marker_xy(finding, slide, used_framed):
     return round(x, 5), round(y, 5)
 
 
-def load_brand(project_dir, project):
-    override = project.get("brand")
-    if override:
-        p = Path(override)
-        p = p if p.is_absolute() else (project_dir / override)
-        if p.exists():
-            return json.loads(p.read_text(encoding="utf-8"))
-        print("WARNING: project.json brand = %r not found; using the skill's own brand.json"
-              % override, file=sys.stderr)
-    return json.loads(BRAND_DEFAULT.read_text(encoding="utf-8"))
+def load_brand(project_dir, project, agency=None):
+    """Delegates to brandkit so the deck, the report and the board cannot
+    resolve branding three different ways. Returns the brand only; the caller
+    that needs the logo takes the second value from brandkit.resolve.
+
+    Retained as a named function because the resolution order is contract
+    behaviour (§2) and deserves one documented entry point per skill.
+    """
+    brand, _info = brandkit.resolve(project_dir, project, agency)
+    return brand
 
 
 def merge_meta(meta, project):
@@ -107,7 +110,7 @@ def merge_meta(meta, project):
     return out
 
 
-def build(project_dir, out_path):
+def build(project_dir, out_path, agency=None):
     project_dir = Path(project_dir)
     findings_path = project_dir / "findings.json"
     project_path = project_dir / "project.json"
@@ -119,7 +122,11 @@ def build(project_dir, out_path):
 
     data = json.loads(findings_path.read_text(encoding="utf-8"))
     project = json.loads(project_path.read_text(encoding="utf-8")) if project_path.exists() else {}
-    brand = load_brand(project_dir, project)
+    try:
+        brand, brand_info = brandkit.resolve(project_dir, project, agency)
+    except brandkit.BrandError as e:
+        print("build_data.py: %s" % e, file=sys.stderr)
+        sys.exit(1)
 
     cats = brand["categories"]
     errors = []
@@ -238,6 +245,10 @@ def build(project_dir, out_path):
             "footer_left": agency.get("footer_left", "").replace("{year}", str(date.today().year)),
             "footer_right": meta.get("footer_right") or agency.get("footer_right", ""),
             "agency": agency.get("name", ""),
+            # The slug, not just the display name. build_site re-resolves from
+            # it so the report and this file cannot disagree about which
+            # agency the run belongs to (contract §2).
+            "agency_slug": brand_info.get("slug") or "",
         },
         "brand": {"categories": cats, "severity": brand["severity"], "colors": brand["colors"]},
         "pages": list(pages.values()),
@@ -274,8 +285,9 @@ def main():
         description="project folder -> report-data.json (renderer input)")
     ap.add_argument("--project", required=True, help="the project folder (contract §1)")
     ap.add_argument("--out", default="", help="default: <project>/report-data.json")
+    brandkit.add_agency_arg(ap)
     a = ap.parse_args()
-    print(json.dumps(build(a.project, a.out or None), indent=2))
+    print(json.dumps(build(a.project, a.out or None, a.agency or None), indent=2))
 
 
 if __name__ == "__main__":

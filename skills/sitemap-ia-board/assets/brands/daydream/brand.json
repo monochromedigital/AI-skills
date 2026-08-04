@@ -1,0 +1,21 @@
+{
+  "_comment": "Daydream overlay. TODO: replace the palette with the real brand values before the first client run. Placeholder values are a soft warm dark, chosen only so the report renders legibly during setup - they are not the brand.",
+  "agency": {
+    "name": "Daydream",
+    "footer_left": "Daydream © {year}. All Rights Reserved",
+    "footer_right": "Website UX/UI Assessment"
+  },
+  "colors": {
+    "background": "#2A2438",
+    "surface": "#332C43",
+    "surface_sunken": "#221D2E",
+    "border": "#453D57",
+    "border_strong": "#564C6B",
+    "border_dashed": "#665B7D",
+    "on_dark": "#D8D2E4",
+    "on_dark_muted": "#948BA6",
+    "footer": "#948BA6",
+    "eyebrow": "#9B8CFF",
+    "marker": "#9B8CFF"
+  }
+}

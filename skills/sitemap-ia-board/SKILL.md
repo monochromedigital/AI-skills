@@ -37,9 +37,16 @@ Ask for it at the start, in the same `AskUserQuestion` call as everything else
 directory, and **reuse the folder if it already exists** rather than creating a
 second one.
 
+Ask which agency the work goes out under in the same call — ALL IN, Crackwits,
+Daydream or Monochrome — unless `project.json` already carries `agency`, in
+which case it is settled and asking again is how a board and its audit end up
+branded by two different agencies (contract §2a). There is no default: the four
+are peers, so the question cannot be skipped and a run that leaves it unset
+fails rather than guessing.
+
 Then read `project.json` if it is there. Another skill has already established
-the client, URL, market, audience, languages and brand tokens; take them and do
-not ask again. Asking a second time invites a different answer, and now two
+the client, URL, market, audience, languages, agency and brand tokens; take
+them and do not ask again. Asking a second time invites a different answer, and now two
 documents disagree about the client's own name. If it is not there, create it
 per contract §2.
 
@@ -225,9 +232,11 @@ a dev note or card so it doesn't get re-litigated.
 
 | Path | What it is |
 |---|---|
-| `assets/brand.json` | Colours and type. Byte-identical in `website-assessment` |
+| `assets/brand.json` | The **base** brand: colours and type. Byte-identical in `website-assessment` |
+| `assets/brands/<slug>/` | Per-agency overlay + logos. One folder per agency (contract §2a) |
 | `assets/ai-writing.json` | The AI-writing word lists. Edit here, never a pasted copy |
 | `assets/fonts/` | Urbanist TTFs (OFL), embedded into the rendered board |
+| `scripts/brandkit.py` | Resolves which agency a run wears. Byte-identical in `website-assessment` |
 | `scripts/render_report.py` | All the CSS, JS and HTML. Byte-identical in `website-assessment` |
 | `scripts/build_board.py` | Thin wrapper: validates, then renders the greenfield board |
 | `scripts/validate_ia.py` | Validates ia.json — schema, ids, chips, phases, and every `fid` |

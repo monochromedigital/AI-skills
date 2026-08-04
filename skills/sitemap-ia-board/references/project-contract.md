@@ -58,7 +58,8 @@ reads it and does not ask again for anything it already contains.
   "languages": ["en", "ar"],
   "audience": "prospect",          // prospect | existing | internal
   "site_type": "service-business", // which site-types/ file governs, or "none"
-  "brand": "brand.json",           // path, relative to the project folder, or null
+  "agency": "daydream",            // §2a · required · no default
+  "brand": null,                   // path, relative to the project folder, or null
   "created": "2026-08-04",
   "runs": [                        // append-only; one entry per skill run
     { "skill": "website-assessment", "on": "2026-08-04", "wrote": ["findings.json"] }
@@ -77,9 +78,69 @@ Rules:
   the user and let them decide.
 - **Append to `runs`.** It is the only record of what has been done in this
   folder, and it is what tells the next skill whether an audit exists.
-- **`brand`** points at a copy of the agency's `brand.json` inside the project
-  folder when the project overrides agency defaults, otherwise `null` and the
-  skill's own `assets/brand.json` governs.
+- **`brand`** points at a brand file inside the project folder for a one-off
+  override — a white-label report delivered under the client's own branding.
+  Otherwise `null`, and `agency` governs. Setting both is not an error: the
+  path wins, because it is the more specific instruction.
+
+---
+
+## §2a · `agency`
+
+Which of the operator's agencies the deliverable goes out under. One slug,
+resolved identically by every renderer through `scripts/brandkit.py`, which is
+carried byte-identically alongside `render_report.py` for the same reason.
+
+```
+assets/brand.json                    the shared base · belongs to no agency
+assets/brands/<slug>/brand.json      the agency · name, footers, palette
+assets/brands/<slug>/logo-dark.svg   optional · for the dark header and slides
+assets/brands/<slug>/logo.svg        optional · for light surfaces
+```
+
+Resolution order, first hit wins:
+
+1. an explicit `--agency` flag on the command line — a one-off, not recorded
+2. `project.json["brand"]` — the file-path override above
+3. `project.json["agency"]` — the normal path
+4. nothing. **The build fails.**
+
+Rules:
+
+- **There is no default agency.** The agencies are peers; none is the house
+  one. A run that does not say which agency it belongs to fails, listing the
+  installed slugs. This is the one degradation rule §8 does not get: every
+  other missing file changes what the document contains, and the gap is
+  visible. Wrong branding changes nothing visible — the document looks
+  entirely finished, and nothing downstream catches it.
+- **The base is nobody's brand.** `assets/brand.json` carries the category
+  colours, the severity colours, the type scale and the deck geometry, and a
+  neutral grey palette that is a placeholder rather than a brand. An agency
+  file that forgets half its palette therefore renders as visibly unbranded
+  instead of as some other agency's work, and the build says which keys fell
+  through.
+
+- **Asked once, in the opening `AskUserQuestion` call** (§1), alongside the
+  project folder. Never as a separate round trip, and never a second time —
+  the first skill to run writes it, and every later skill reads it. A skill
+  that asks again invites a different answer, and now the audit and the board
+  are branded by two different agencies.
+- **An unknown slug fails the build**, non-zero, listing what is installed. A
+  typo quietly falling back to the default is how a Monochrome deck goes out
+  in Crackwits colours, and nothing about the output would say so.
+- **Overlays, never copies.** An agency file carries only what it changes;
+  everything else is inherited from the base and deep-merged. Copying the base
+  and editing it means the next change to a category colour has to be made
+  four times, and will be made in three.
+- **Category and severity colours are shared, not per-agency.** They are
+  functional encoding — a reader learns that orange means UX across every
+  report they receive. An agency may override them, but it has to be typed
+  deliberately into the agency file rather than inherited by accident.
+- **A missing logo degrades to text**, which is what happened before logos
+  existed. It is not a build failure. A broken `<img>` in a document already
+  sent to a client is worse than no logo at all.
+- **Logos are embedded, never linked.** These documents are single files that
+  have to open offline, in an email client, and after the CDN link has rotted.
 
 ---
 

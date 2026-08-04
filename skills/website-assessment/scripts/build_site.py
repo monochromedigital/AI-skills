@@ -43,6 +43,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import render_report as R          # noqa: E402
+import brandkit                   # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_SCHEMA = 1
@@ -183,7 +184,8 @@ def validate_ia(ia, by_id):
 
 
 # ---------------------------------------------------------------- build
-def build(project_dir, data_path, ia_path, out, mode, cost_bands, use_ia=True):
+def build(project_dir, data_path, ia_path, out, mode, cost_bands, use_ia=True,
+          agency=None):
     project_dir = Path(project_dir)
     data_path = Path(data_path) if data_path else (project_dir / "report-data.json")
     if not data_path.exists():
@@ -242,7 +244,21 @@ def build(project_dir, data_path, ia_path, out, mode, cost_bands, use_ia=True):
         "footer_left": m.get("footer_left", ""),
         "footer_right": m.get("footer_right", ""),
     }
-    brand = json.loads((ROOT / "assets" / "brand.json").read_text(encoding="utf-8"))
+    # Branding is resolved here, not read off the skill's default file. The
+    # old line ignored every palette override in project.json - build_data
+    # honoured it, this did not, and the HTML came out in the default colours
+    # while the deck came out in a third set.
+    project = brandkit.load_project(project_dir)
+    try:
+        brand, brand_info = brandkit.resolve(
+            project_dir, project, agency or m.get("agency_slug") or None)
+    except brandkit.BrandError as e:
+        die(["project.json: %s" % e])
+    meta["logo_uri"] = brand_info.get("logo_uri", "")
+
+    # Categories and severity still come from the model: build_data validated
+    # every finding against that exact set, so re-reading them here would let
+    # a later edit to the brand file invalidate an already-checked document.
     brand["categories"] = model["brand"]["categories"]
     brand["severity"] = model["brand"]["severity"]
     html = R.render(brand, meta, model, ia, ROOT / "assets", cost_bands)
@@ -267,6 +283,9 @@ def build(project_dir, data_path, ia_path, out, mode, cost_bands, use_ia=True):
 
     return {
         "out": target, "mode": mode,
+        "agency": brand.get("agency", {}).get("name", ""),
+        "agency_slug": brand_info.get("slug") or "",
+        "logo": bool(brand_info.get("logo_uri")),
         "views": R.views_for(model, ia),
         "ia": bool(ia),
         "personas": len((ia or {}).get("personas", [])),
@@ -289,9 +308,11 @@ def main():
     ap.add_argument("--mode", default="inline", choices=["inline", "folder"])
     ap.add_argument("--cost-bands", default="",
                     help="optional effort->band map, e.g. \"S=$500-1k,M=$1-3k,L=$3k+\"")
+    brandkit.add_agency_arg(ap)
     a = ap.parse_args()
     print(json.dumps(build(a.project, a.data or None, a.ia or None, a.out, a.mode,
-                           parse_cost_bands(a.cost_bands), use_ia=not a.no_ia), indent=2))
+                           parse_cost_bands(a.cost_bands), use_ia=not a.no_ia,
+                           agency=a.agency or None), indent=2))
 
 
 if __name__ == "__main__":
