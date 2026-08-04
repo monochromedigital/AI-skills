@@ -242,12 +242,19 @@ One document points at another **by id and only by id**.
 Each file is optional, and the absence of one changes the output rather than
 breaking it.
 
-| Present | Output |
+| Present | Views |
 |---|---|
-| `findings.json` + `ia.json` | Six views: Home · Audit · Summary · **Personas** · **Sitemap** · Action items |
-| `findings.json` only | Four views: Home · Audit · Summary · Action items |
-| `ia.json` only | The standalone board from `sitemap-ia-board`. The shared renderer requires findings and says so |
+| `findings.json` + `ia.json` | Home · Audit · Summary · **Personas** · **Sitemap** · Action items |
+| `findings.json` only | Home · Audit · Summary · Action items |
+| `ia.json` only | Home · **Personas** · **Sitemap** — the greenfield board, same renderer |
+| either, plus `ia.db` | adds **Database** |
+| either, plus `ia.glossary` | adds **Glossary** |
 | neither | Nothing to render |
+
+One renderer draws all of these — `scripts/render_report.py`, carried
+byte-identically by every skill that produces a report. An audit report and a
+greenfield board are the same document with different sections present. The
+moment they were two codebases they started looking like two agencies.
 
 **Remove, do not disable.** In the four-view build, the Personas and Sitemap
 nav items and their Home cover cards are absent from the DOM — not greyed out,

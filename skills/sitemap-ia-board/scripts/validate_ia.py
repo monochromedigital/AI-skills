@@ -147,6 +147,28 @@ def validate(ia, known, has_audit):
         if not (f.get("path") or "").strip():
             errors.append("funnels[%d].path is missing" % i)
 
+    db = ia.get("db") or {}
+    for i, g in enumerate(db.get("groups", []) or []):
+        if not (g.get("name") or "").strip():
+            errors.append("db.groups[%d].name is missing" % i)
+        for j, t in enumerate(g.get("tables", []) or []):
+            base = "db.groups[%d].tables[%d]" % (i, j)
+            if not (t.get("name") or "").strip():
+                errors.append("%s.name is missing" % base)
+            if not (t.get("fields") or []):
+                errors.append("%s.fields is empty - a table a dev cannot build is a "
+                              "placeholder" % base)
+            if t.get("phase", 1) not in (1, 2):
+                errors.append("%s.phase = %r must be 1 or 2" % (base, t.get("phase")))
+    for i, n in enumerate(db.get("notes", []) or []):
+        if not (n.get("t") or "").strip() or not (n.get("d") or "").strip():
+            errors.append("db.notes[%d] needs both a title and the reasoning behind the "
+                          "decision" % i)
+
+    for i, g in enumerate(ia.get("glossary", []) or []):
+        if not (g.get("term") or "").strip() or not (g.get("def") or "").strip():
+            errors.append("glossary[%d] needs both a term and a definition" % i)
+
     if has_audit and not (ia.get("evidence") or {}).get("note"):
         errors.append("evidence.note is missing - say what the personas are grounded in. "
                       "\"No primary research\" is an acceptable answer; silence is not.")

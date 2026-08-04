@@ -271,7 +271,8 @@ edit that file, never hard-code a value in a script.
 | `scripts/check_prose.py` | Flags AI-writing vocabulary in the client-facing prose, by JSON path |
 | `scripts/build_deck.py` | findings.json → PPTX |
 | `scripts/build_data.py` | project folder → report-data.json (the renderer's input) |
-| `scripts/build_site.py` | report-data.json + optional ia.json → interactive web report |
+| `scripts/render_report.py` | All the CSS, JS and HTML. Byte-identical in `sitemap-ia-board` |
+| `scripts/build_site.py` | Thin wrapper: validates, handles images, calls the renderer |
 | `figma-plugin/` | Figma plugin: same slides, native Figma frames |
 | `references/project-contract.md` | The shared agreement with the other project skills |
 | `references/capture.md` | The three capture routes, and what the data gives you |

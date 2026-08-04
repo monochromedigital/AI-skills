@@ -203,11 +203,27 @@ python3 scripts/build_site.py --project ~/Clients/meridian-dental \
     --out ~/Clients/meridian-dental/out/report.html
 ```
 
-Same commands as week one. Same output file. **Six views now** — Personas and
-Sitemap have appeared between Summary and Action items, and every section card
-that exists because of a finding expands to show it.
+Same commands as week one. Same output file. **Personas and Sitemap have
+appeared** between Summary and Action items, with Database and Glossary after
+them because `ia.json` carries a content model and a term list. Every section
+card that exists because of a finding expands to show it.
 
 Nobody passed a flag. The folder's contents decided.
+
+### If there had been no audit
+
+Meridian came with one. A brand-new brand would not, and then the same
+`ia.json` renders on its own:
+
+```bash
+python3 scripts/build_board.py --project ~/Clients/meridian-dental \
+    --out ~/Clients/meridian-dental/out/sitemap.html
+```
+
+Home, Personas, Sitemap, Database, Glossary. No Audit, Summary or Action items,
+because there are no findings — those tabs are absent rather than empty. Same
+renderer, so it is the same document with fewer sections, not a different
+deliverable that happens to cover similar ground.
 
 ---
 
@@ -246,6 +262,7 @@ because it gets sent.
 | `but this project has no findings.json` | A `fid` on a greenfield project | Remove it. Never invent one |
 | `personas[n].needs_pages is empty` | A persona that changes nothing | Cut the persona, or find the page it requires |
 | `chips is empty` | A section card with no discipline | Cut the card. If it earns no chip, it earns no place |
+| `findings.json exists, so this project has an audit` | `build_board.py` in a redesign project | Render the combined report with `build_site.py` instead |
 | Report has two active nav tabs | A routing bug — see the note on `classList.toggle` in `references/interactive.md` | Compare an explicit view key |
 | An inline report too heavy to open | More than ~20 screens as data URLs | Rebuild with `--mode folder` |
 | `differs across skills` from `package.sh` | A shared file edited in one skill only | Copy it across. They must be byte-identical |
@@ -267,7 +284,7 @@ python3 scripts/build_deck.py  --findings $P/findings.json --root $P --out $P/ou
 
 # information architecture
 python3 scripts/validate_ia.py --ia $P/ia.json
-python3 scripts/validate_ia.py --ia $P/ia.json --board $P/out/sitemap.html
+python3 scripts/build_board.py  --project $P --out $P/out/sitemap.html   # greenfield only
 
 # anywhere, no skill installed
 python3 scripts/check_prose_standalone.py --project $P

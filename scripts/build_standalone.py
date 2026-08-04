@@ -39,7 +39,9 @@ WORDS = "assets/ai-writing.json"
 # Files the project contract requires to be identical wherever they appear.
 SHARED = [
     "assets/ai-writing.json",
+    "assets/brand.json",
     "scripts/check_prose.py",
+    "scripts/render_report.py",
     "references/ai-writing.md",
     "references/project-contract.md",
 ]

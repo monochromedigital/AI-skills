@@ -37,7 +37,9 @@ This produces `dist/website-assessment.skill`, which can be uploaded in Claude's
 
 `website-assessment` and `sitemap-ia-board` work on the same client project,
 in one folder, through the contract in `references/project-contract.md` (carried
-identically by both). [`docs/walkthrough.md`](docs/walkthrough.md) follows one
+identically by both). They also share one renderer — `scripts/render_report.py`,
+byte-identical in both — so an audit report and a greenfield IA board are the
+same document with different sections present rather than two design systems. [`docs/walkthrough.md`](docs/walkthrough.md) follows one
 client through both skills end to end — what each asks, what lands in the
 folder, what the checks catch, and why the report grows from four views to six
 without anyone passing a flag.

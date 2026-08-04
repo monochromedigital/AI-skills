@@ -5,9 +5,11 @@ description: Produce a complete visual sitemap + information architecture board 
 
 # Sitemap + Information Architecture Board
 
-A Relume-style visual board where each page of the website is a column of
-section cards, preceded by the personas that justify them and followed by
-conversion logic, a CMS/database architecture, and a jargon dictionary. The
+A browsable board where each page of the website is a column of section cards,
+preceded by the personas that justify them and followed by conversion logic, a
+CMS/database architecture, and a jargon dictionary. It renders through the same
+engine as the audit report, so a client who gets a board and a client who gets
+an audit are looking at one design system. The
 audience is mixed — client, designers, copywriters, SEO and developers all read
 the same document — which is why it layers plain language on top of specialist
 annotations.
@@ -23,8 +25,8 @@ The folder decides, not the user:
 
 | In the project folder | What this skill does |
 |---|---|
-| `findings.json` is present | **Redesign.** There is a diagnosis attached. Cite it, write `ia.json`, and let the assessment skill's `build_site.py` render the combined report. Do not build a second HTML board competing with it |
-| no `findings.json` | **Greenfield.** Build as before: `ia.json` plus the standalone board from `assets/board-template.html`, so the skill still delivers on its own |
+| `findings.json` is present | **Redesign.** There is a diagnosis attached. Cite it, write `ia.json`, and let the assessment skill's `build_site.py` render the combined report. Do not build a second board competing with it |
+| no `findings.json` | **Greenfield.** Write `ia.json` and render it with `build_board.py`, so the skill delivers on its own — same renderer, same look |
 
 ## Workflow
 
@@ -93,13 +95,13 @@ invention — a projects archive, a client list, case studies. Derive the person
 set from what they actually sold and state the count behind each one ("15 of 50
 installations").
 
-### 5 · Design the IA before touching the template
+### 5 · Design the IA before writing any JSON
 
 Decide pages and sections on paper first. Read `references/methodology.md` for
 the reasoning rules — deriving pages from a business model, the tagging system,
 phase discipline, lead-capture layering, SEO architecture, DB modelling
-patterns. The board is only as good as this thinking; the template just renders
-it.
+patterns. The board is only as good as this thinking; `ia.json` just records
+it and the renderer just draws it.
 
 A typical build is 8–12 page columns. Every site gets: Home, primary offering
 page(s) + detail template, a dedicated conversion landing page, About, Contact,
@@ -151,8 +153,13 @@ renderer ignores them rather than failing on them.
 
 ### 8 · Build the output
 
+Both modes call the same renderer, `scripts/render_report.py`, which this skill
+carries byte-identically with `website-assessment`. A greenfield board and an
+audit report are the same document with different sections present. Nothing is
+hand-written into HTML any more.
+
 **Redesign mode** — `ia.json` is this skill's deliverable. Hand it to the
-assessment skill's renderer:
+assessment skill:
 
 ```bash
 python3 ../website-assessment/scripts/build_data.py --project <project>
@@ -160,29 +167,20 @@ python3 ../website-assessment/scripts/build_site.py --project <project> \
     --out <project>/out/report.html
 ```
 
-Six views instead of four: Personas and Sitemap slot in beside the audit. Do
-not also build a standalone board — two documents saying the same thing
-diverge, and the client reads whichever one they opened last.
+Personas and Sitemap slot in beside the audit, and Database and Glossary follow
+when `ia.json` carries them. Do not also build a standalone board — two
+documents saying the same thing diverge, and the client reads whichever one they
+opened last. `build_board.py` refuses in this case and says so.
 
-**Greenfield mode** — `ia.json` plus the standalone board. Copy
-`assets/board-template.html`, fill it in, and save it as
-`<project>/out/sitemap-information-architecture.html`. The template contains
-the complete CSS, the layout skeleton, the personas block, one fully-worked
-example column showing the expected card quality, and HTML comments marking
-every insertion point. Keep the visual system exactly as-is (colours, tags,
-dashed Phase-2 style) — consistency across projects is part of the value.
+**Greenfield mode:**
 
-Every page column needs, in order:
+```bash
+python3 scripts/build_board.py --project <project> --out <project>/out/sitemap.html
+```
 
-- **Column header**: page name + URL slug (templates marked `(template)` with
-  `{param}` slugs)
-- **"In plain words" box**: 2–3 sentences a non-technical client understands,
-  ending with a concrete scenario with a named actor. Mandatory for every column
-- **Section cards**: title + 1–2 sentences explaining *why the section earns its
-  place*, with the relevant chips. A card with no reason to exist gets cut
-
-Fill the DB section following `references/methodology.md` § Database patterns,
-and prune the ~55-entry glossary to the terms the document actually uses.
+Home, Personas and Sitemap, plus Database and Glossary when the file carries
+them. No Audit, Summary or Action items, because there are no findings — those
+tabs are absent from the nav rather than empty.
 
 ### 9 · Validate, then look at it
 
@@ -227,8 +225,11 @@ a dev note or card so it doesn't get re-litigated.
 
 | Path | What it is |
 |---|---|
-| `assets/board-template.html` | The standalone board: full CSS, personas block, worked example column |
+| `assets/brand.json` | Colours and type. Byte-identical in `website-assessment` |
 | `assets/ai-writing.json` | The AI-writing word lists. Edit here, never a pasted copy |
+| `assets/fonts/` | Urbanist TTFs (OFL), embedded into the rendered board |
+| `scripts/render_report.py` | All the CSS, JS and HTML. Byte-identical in `website-assessment` |
+| `scripts/build_board.py` | Thin wrapper: validates, then renders the greenfield board |
 | `scripts/validate_ia.py` | Validates ia.json — schema, ids, chips, phases, and every `fid` |
 | `scripts/check_prose.py` | Flags AI-writing vocabulary in the client-facing prose, by JSON path |
 | `references/project-contract.md` | The shared agreement with the other project skills |
@@ -258,7 +259,13 @@ quoted. Reuse the folder (contract §1).
 
 **Building a standalone board when an audit exists.** Two documents covering the
 same structure diverge, and the client reads whichever they opened last. In
-redesign mode `ia.json` is the deliverable and the shared renderer draws it.
+redesign mode `ia.json` is the deliverable and the combined report draws it.
+`build_board.py` refuses rather than letting it happen quietly.
+
+**Hand-editing the rendered HTML.** It is generated from `ia.json` and will be
+overwritten on the next build. Change the JSON. If something cannot be
+expressed in `ia.json`, that is worth saying out loud — it usually means the
+schema is missing a field the work actually needs.
 
 **Personas that decorate.** If cutting a persona would not remove a page, a
 section, a form field or a funnel, it was describing the market rather than

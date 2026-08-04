@@ -17,11 +17,20 @@ python3 scripts/build_site.py ... --cost-bands "S=\$500-1k,M=\$1-3k,L=\$3k+"
 python3 scripts/build_site.py --project audit/ --no-ia --out audit/out/report.html
 ```
 
-## Why it is two scripts
+## Why it is three files
+
+`render_report.py` holds every line of CSS, JS and HTML, and is carried
+**byte-identically** by `sitemap-ia-board` too. `build_site.py` here and
+`build_board.py` there are thin wrappers around it. An audit report and a
+greenfield IA board are the same document with different sections present; the
+moment they were two codebases they started looking like two agencies.
+
+## Why the data step is separate
 
 `build_data.py` reads `project.json`, `findings.json` and the screenshots and
 writes `report-data.json`. `build_site.py` reads that, plus `ia.json` if it
-exists, and writes the HTML. Neither writes its own input — project contract §4.
+exists, hands both to the renderer, and writes the HTML. Neither writes its own
+input — project contract §4.
 
 The split is not tidiness. The two halves fail differently. A screenshot path
 that does not resolve, a marker outside the image, a finding with no id: those
@@ -49,9 +58,11 @@ slide has only a framed image, marker coordinates are mapped through its
 
 Hash-routed, so the whole report is one file with several addresses.
 
-**Four views** when the folder has only `findings.json`. **Six** when
-`sitemap-ia-board` has also run and left an `ia.json`: Personas and Sitemap
-slot in between Summary and Action items.
+**Four views** when the folder has only `findings.json`. Personas and Sitemap
+slot in between Summary and Action items when `sitemap-ia-board` has left an
+`ia.json`, and Database and Glossary follow them when that file carries a
+content model or a term list. Eight is the maximum; nothing is padded to reach
+it.
 
 In the four-view build the two extra tabs and their Home cover cards are
 **removed from the DOM**, not greyed out. A tab a user can see is a tab they

@@ -64,10 +64,52 @@ everyone else reads it.
     }]
   }],
 
-  "db": { },        // optional · standalone board only · the shared renderer ignores it
-  "glossary": [ ]   // optional · standalone board only · the shared renderer ignores it
+  "db": { },        // optional · renders as the Database view
+  "glossary": [ ]   // optional · renders as the Glossary view
 }
 ```
+
+## `db` — the Database view
+
+```jsonc
+"db": {
+  "note": "CMS-agnostic note: localisation strategy, what dashed means, the FK legend.",
+  "groups": [{
+    "name": "Content tables (launch)",
+    "phase": 1,
+    "tables": [{
+      "name": "services",
+      "note": "one per service page",     // the small grey label in the header
+      "phase": 1,                          // 2 renders dashed: schema now, rows later
+      "fields": [
+        { "f": "id, name, slug", "loc": true },      // loc = field-level localisation
+        { "f": "hero_id", "fk": "media" }            // fk renders as FK→media
+      ]
+    }]
+  }],
+  "relations": ["documents  M:1  services", "leads  M:1  services (nullable)"],
+  "notes": [{ "t": "One canonical URL per service",
+              "d": "The reasoning, not the rule. This is the decision devs most often undo." }]
+}
+```
+
+Every table needs at least one field — a table a developer cannot build from is
+a placeholder. Every note needs both a title and the reasoning behind the
+decision, because a note without the *why* gets undone by the next person.
+
+## `glossary` — the Glossary view
+
+A flat list, grouped at render time by `group`:
+
+```jsonc
+"glossary": [
+  { "group": "SEO", "term": "Canonical URL",
+    "def": "The one official address for a page when similar content exists in several places." }
+]
+```
+
+Rule: every specialist term that appears anywhere in the document has an entry.
+If a term is on the board and not here, one of the two is wrong.
 
 ## The rules that are actually enforced
 
@@ -90,14 +132,24 @@ everyone else reads it.
 
 ```bash
 python3 scripts/validate_ia.py --ia <project>/ia.json
-python3 scripts/validate_ia.py --ia <project>/ia.json --board <project>/out/sitemap.html
 ```
 
-## `db` and `glossary`
+## Rendering it
 
-They stay here, and they stay in the standalone board. The shared renderer
-ignores them rather than failing on them, so this skill can keep emitting them
-without the assessment skill needing to know what a CMS table is.
+Nothing is hand-written any more. `ia.json` in, HTML out:
 
-Everything about how to design them is in `references/methodology.md`
-§ Database patterns.
+```bash
+python3 scripts/build_board.py --project <project> --out <project>/out/sitemap.html
+```
+
+That calls `render_report.py`, the same renderer the assessment skill uses, so
+a greenfield board and an audit report are one design system rather than two.
+Which views appear follows the file: Personas and Sitemap always, Database when
+`db` is present, Glossary when `glossary` is.
+
+If `findings.json` is in the folder, `build_board.py` refuses and tells you to
+render the combined report instead. Two documents covering the same structure
+diverge, and the client reads whichever they opened last.
+
+How to *design* the content model is in `references/methodology.md`
+§ Database patterns. This file only fixes its shape.
