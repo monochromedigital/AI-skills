@@ -33,6 +33,15 @@ cp -r AI-skills/skills/website-assessment ~/.claude/skills/
 
 This produces `dist/website-assessment.skill`, which can be uploaded in Claude's skill settings.
 
+## How the project skills fit together
+
+`website-assessment` and `sitemap-ia-board` work on the same client project,
+in one folder, through the contract in `references/project-contract.md` (carried
+identically by both). [`docs/walkthrough.md`](docs/walkthrough.md) follows one
+client through both skills end to end — what each asks, what lands in the
+folder, what the checks catch, and why the report grows from four views to six
+without anyone passing a flag.
+
 ## Repo-level scripts
 
 `scripts/check_prose_standalone.py` is a portable copy of the AI-writing checker
