@@ -1,11 +1,11 @@
 ---
 name: website-assessment
-description: Run a live, section-by-section UX/UI/SEO/accessibility audit of a website, typed to the kind of site it is (ecommerce, SaaS, service, corporate, publisher, marketplace, nonprofit/education), and deliver it as an interactive web report, a Crackwits-branded PPTX deck, and/or Figma slides — numbered markers pinned to the exact elements, category tags, severity, fixes, benchmarks and counts. Use this whenever the user asks to assess, audit, review, critique, analyse, evaluate, or "look at" a website or page — including "what's wrong with this site", "review this landing page", "audit my store/checkout", "review our pricing page", "check this site for accessibility", "do a UX audit", "assess a competitor's site", "prepare a website review for a client", or when they share a URL and want an opinion on it. Also use when they ask for a website assessment deck, site audit slides, or a UX/UI report. Trigger even if they never say "audit" or "deck" — a request to evaluate any live website is this skill.
+description: Run a live, section-by-section UX/UI/SEO/accessibility audit of a website, typed to the kind of site it is (ecommerce, SaaS, service, corporate, publisher, marketplace, nonprofit/education), and deliver it as an interactive web report, an agency-branded PPTX deck, and/or Figma slides — numbered markers pinned to the exact elements, category tags, severity, fixes, benchmarks and counts. Use this whenever the user asks to assess, audit, review, critique, analyse, evaluate, or "look at" a website or page — including "what's wrong with this site", "review this landing page", "audit my store/checkout", "review our pricing page", "check this site for accessibility", "do a UX audit", "assess a competitor's site", "prepare a website review for a client", or when they share a URL and want an opinion on it. Also use when they ask for a website assessment deck, site audit slides, or a UX/UI report. Trigger even if they never say "audit" or "deck" — a request to evaluate any live website is this skill.
 ---
 
 # Website Assessment
 
-Produces the Crackwits "Website UX/UI Assessment" deck: one slide per page
+Produces the "Website Audit" deck: one slide per page
 section, a device-framed screenshot with numbered markers pinned to the exact
 element in question, matching numbered finding cards tagged by discipline, and
 a summary slide with a narrative diagnosis plus counts per category.

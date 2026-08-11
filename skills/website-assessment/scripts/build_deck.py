@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 build_deck.py - Stage 3. Turns findings.json + framed screenshots into the
-Crackwits "Website UX/UI Assessment" PowerPoint deck.
+"Website Audit" PowerPoint deck, branded for whichever agency the project
+names (contract §2).
 
 Slide types produced:
   cover    - client name, URL, date
@@ -31,6 +32,7 @@ from pptx.util import Emu, Pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import brandkit                       # noqa: E402
+from build_data import DELIVERABLE    # noqa: E402  one label, one definition
 
 ROOT = Path(__file__).parent.parent
 BRAND = json.loads((ROOT / "assets" / "brand.json").read_text())
@@ -270,7 +272,7 @@ def add_footer(slide, meta):
              BRAND["agency"]["footer_left"].format(year=yr),
              T["footer"]["size_pt"], C["footer"], font=T["footer"]["font"])
     add_text(slide, fx(L["footer_r_x"] - 0.30), fy(L["footer_y"]), fx(0.30), fy(0.03),
-             meta.get("footer_right", BRAND["agency"]["footer_right"]),
+             meta.get("footer_right") or DELIVERABLE,
              T["footer"]["size_pt"], C["footer"], font=T["footer"]["font"],
              align=PP_ALIGN.RIGHT)
 
@@ -286,7 +288,7 @@ def add_heading(slide, eyebrow, title):
 def cover_slide(prs, meta):
     s = blank(prs)
     add_text(s, fx(0.058), fy(0.36), fx(0.70), fy(0.06),
-             meta.get("deck_kicker", "Website UX/UI Assessment"),
+             meta.get("deck_kicker") or DELIVERABLE,
              T["eyebrow"]["size_pt"], C["eyebrow"], font=T["eyebrow"]["font"])
     add_text(s, fx(0.058), fy(0.42), fx(0.80), fy(0.16),
              meta.get("client", "Client"), 54, C["title"], font=T["title"]["font"])

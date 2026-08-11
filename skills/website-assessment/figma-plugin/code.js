@@ -1,4 +1,4 @@
-/* Crackwits Website Assessment - Figma plugin (main thread)
+/* Website Audit - Figma plugin (main thread)
  *
  * Receives an audit bundle from the plugin UI and builds the assessment
  * slides as real Figma frames: eyebrow + title, a findings panel with
@@ -7,6 +7,12 @@
  *
  * Layout constants mirror assets/brand.json so PPTX and Figma output match.
  */
+
+// The deliverable's name, wherever a slide has to say it. Kept in one place
+// here for the same reason build_data.py keeps DELIVERABLE in one place: the
+// label used to be written out at each site, and a rename reached some of
+// them and not others.
+var DELIVERABLE = 'Website Audit';
 
 figma.showUI(__html__, { width: 460, height: 620, themeColors: true });
 
@@ -241,7 +247,7 @@ class DeckBuilder {
     this.text(slide, { text: 'Crackwits © ' + year + '. All Rights Reserved',
       x: this.px(L.footer_l_x), y: this.py(L.footer_y),
       size: this.pt(T.footer.size_pt), color: C.footer });
-    const right = this.text(slide, { text: meta.footer_right || 'Website UX/UI Assessment',
+    const right = this.text(slide, { text: meta.footer_right || DELIVERABLE,
       x: 0, y: this.py(L.footer_y), size: this.pt(T.footer.size_pt), color: C.footer });
     right.x = this.px(L.footer_r_x) - right.width;
   }
@@ -462,7 +468,7 @@ class DeckBuilder {
   cover(meta) {
     const C = this.b.colors, T = this.b.type;
     const slide = this.slide('Cover');
-    this.text(slide, { text: meta.deck_kicker || 'Website UX/UI Assessment',
+    this.text(slide, { text: meta.deck_kicker || DELIVERABLE,
       x: this.px(0.058), y: this.py(0.36), size: this.pt(T.eyebrow.size_pt), color: C.eyebrow });
     this.text(slide, { text: meta.client || 'Client', x: this.px(0.058), y: this.py(0.42),
       size: this.pt(54), color: C.title, style: 'Light', width: this.px(0.80) });
