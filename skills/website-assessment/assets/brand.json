@@ -2,8 +2,7 @@
   "_comment": "SHARED BASE - not any agency's brand. Carries only what every agency has in common: the seven category colours, the three severity colours, the type scale and all deck layout geometry. The palette here is a deliberate neutral grey that belongs to nobody, so an incomplete agency file renders as visibly unbranded rather than as some other agency's work. Per-agency values live in assets/brands/<slug>/brand.json. Must stay byte-identical in every skill that carries it.",
   "agency": {
     "name": "",
-    "footer_left": "",
-    "footer_right": ""
+    "footer_left": ""
   },
   "slide": {
     "width_px": 3840,

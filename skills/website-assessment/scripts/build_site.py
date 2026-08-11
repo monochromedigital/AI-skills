@@ -44,6 +44,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import render_report as R          # noqa: E402
 import brandkit                   # noqa: E402
+from build_data import DELIVERABLE  # noqa: E402  one label, one definition
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_SCHEMA = 1
@@ -234,7 +235,7 @@ def build(project_dir, data_path, ia_path, out, mode, cost_bands, use_ia=True,
         "client": m.get("client", "Website"),
         "url": m.get("url", ""),
         "date": m.get("audited_on") or date.today().isoformat(),
-        "kind": "Website UX/UI Assessment",
+        "kind": DELIVERABLE,
         "lede": "A section-by-section review of %s, annotated on the page itself. Every finding "
                 "is pinned to the element it describes, filterable by discipline and severity, "
                 "and linkable on its own." % (m.get("url") or "the site"),

@@ -37,6 +37,14 @@ import brandkit                       # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 BRAND_DEFAULT = ROOT / "assets" / "brand.json"
 
+# What this skill calls its deliverable, shown at the right of every footer.
+# It belongs to the skill, not to an agency: all four go out under the same
+# label, and it used to be copied into each agency overlay - four identical
+# strings that only stayed in step by luck. They did not, and the drift broke
+# the byte-identity check the contract runs on assets/brands/. A project can
+# still override it per run through findings.json meta.footer_right.
+DELIVERABLE = "Website Audit"
+
 SCHEMA = 1
 ID_RE = re.compile(r"^f-[0-9a-f]{10}$")
 
@@ -243,7 +251,7 @@ def build(project_dir, out_path, agency=None):
             "site_type": meta.get("site_type", ""),
             "languages": project.get("languages", []),
             "footer_left": agency.get("footer_left", "").replace("{year}", str(date.today().year)),
-            "footer_right": meta.get("footer_right") or agency.get("footer_right", ""),
+            "footer_right": meta.get("footer_right") or DELIVERABLE,
             "agency": agency.get("name", ""),
             # The slug, not just the display name. build_site re-resolves from
             # it so the report and this file cannot disagree about which

@@ -29,7 +29,7 @@ the ids below.
     "show_benchmark": true,          // "Benchmark: ..." line
     "show_principle": true,          // "Principle: ..." line
     "priority_slide": true,          // ranked Critical/Moderate slide at the end
-    "footer_right": "Website UX/UI Assessment"
+    "footer_right": "Website Audit"   // optional · overrides the default label
   },
 
   "slides": [

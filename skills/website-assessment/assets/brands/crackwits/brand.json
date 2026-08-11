@@ -2,8 +2,7 @@
   "_comment": "Crackwits. A peer of the other three - these values used to live in assets/brand.json, which made Crackwits structurally the default. It is not.",
   "agency": {
     "name": "Crackwits",
-    "footer_left": "Crackwits © {year}. All Rights Reserved",
-    "footer_right": "Website UX/UI Assessment"
+    "footer_left": "Crackwits © {year}. All Rights Reserved"
   },
   "colors": {
     "background": "#312F31",

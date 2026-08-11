@@ -2,8 +2,7 @@
   "_comment": "ALL IN overlay. Palette seeded from the indigo/emerald tokens used on the CompoundIn work - confirm these are the agency's own brand and not that project's design system before the first client run.",
   "agency": {
     "name": "ALL IN",
-    "footer_left": "ALL IN © {year}. All Rights Reserved",
-    "footer_right": "Website UX/UI Assessment"
+    "footer_left": "ALL IN © {year}. All Rights Reserved"
   },
   "colors": {
     "background": "#1E1B33",

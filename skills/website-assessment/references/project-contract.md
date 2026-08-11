@@ -93,7 +93,7 @@ carried byte-identically alongside `render_report.py` for the same reason.
 
 ```
 assets/brand.json                    the shared base · belongs to no agency
-assets/brands/<slug>/brand.json      the agency · name, footers, palette
+assets/brands/<slug>/brand.json      the agency · name, copyright line, palette
 assets/brands/<slug>/logo-dark.svg   optional · for the dark header and slides
 assets/brands/<slug>/logo.svg        optional · for light surfaces
 ```

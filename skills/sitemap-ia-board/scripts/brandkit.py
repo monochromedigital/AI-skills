@@ -28,8 +28,11 @@ Per-agency files are **overlays**, not replacements. `assets/brand.json` is the
 base and belongs to nobody: categories, severity, layout and type live there
 and are not duplicated four times. Its palette is a deliberate neutral grey, so
 an incomplete agency file renders as visibly unbranded rather than as some
-other agency's work. An agency file carries its name, its footers and its
-palette. Deep-merged, so an agency that overrides one colour keeps the rest.
+other agency's work. An agency file carries its name, its copyright line and
+its palette. Deep-merged, so an agency that overrides one colour keeps the
+rest. It does not carry the deliverable's own label - all four agencies ship
+the same document under the same name, so that string belongs to the skill
+that builds it, not copied into four overlays that then drift.
 
 Category colours are deliberately awkward to override. The seven discipline
 colours are functional encoding - a reader learns that orange means UX across
