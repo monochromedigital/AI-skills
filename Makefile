@@ -5,6 +5,12 @@
 # scans every skill under skills/, so a third skill that picks up a shared file
 # is covered without editing anything here. Keeping a second list in a shell
 # script would be the same drift this repo exists to prevent.
+#
+# The syntax check globs skills/*/ for the same reason. It used to name A and B,
+# which read as harmless while those were the only two skills with code in them.
+# atomic-design arrived with a validator that `make zip` packages and uploads
+# and nothing ever parsed. A check that silently covers a subset is worse than
+# one that covers nothing, because the green tick is read as coverage.
 
 A := skills/website-assessment
 B := skills/sitemap-ia-board
@@ -21,7 +27,7 @@ check:
 	@python3 scripts/build_standalone.py --check
 	@echo "  All shared files identical."
 	@echo "== python syntax =="
-	@for f in $(A)/scripts/*.py $(B)/scripts/*.py scripts/*.py; do \
+	@for f in skills/*/scripts/*.py scripts/*.py; do \
 	  python3 -c "import ast,sys;ast.parse(open('$$f').read())" || exit 1; done
 	@echo "  all parse"
 	@echo "== agencies installed =="
