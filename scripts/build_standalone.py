@@ -24,6 +24,7 @@ Usage:
 
 import argparse
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -51,6 +52,23 @@ SHARED = [
 # document looks like, so a palette edited in one skill and not the other is
 # how an audit and its board end up branded as different agencies.
 SHARED_TREES = ["assets/brands"]
+
+# The other half of the rule (contract §2b). Byte-identity catches copies that
+# have already drifted; this catches the arrangement that makes drift certain -
+# a per-deliverable value living in a file every skill has to carry.
+#
+# `footer_right` is here because it was the one that broke. It sat in all four
+# agency overlays, in both skills, holding the same string in all eight - and
+# the day one was edited, the byte-identity check failed while pointing at the
+# wrong fix: syncing the copies would have labelled a sitemap as an audit. The
+# label belongs to the skill (build_data.py's DELIVERABLE), not to an agency,
+# and putting it back in a brand file should fail immediately rather than on
+# whichever later commit happens to touch one copy.
+BRAND_FILES = ["assets/brand.json", "assets/brands/*/brand.json"]
+FORBIDDEN_BRAND_KEYS = {
+    "footer_right": "the deliverable's name - one DELIVERABLE constant per "
+                    "skill, not four copies per agency",
+}
 
 ANCHOR_ROOT = 'ROOT = Path(__file__).resolve().parent.parent\nWORDS_FILE = ROOT / "assets" / "ai-writing.json"'
 ANCHOR_LOAD = re.compile(
@@ -105,6 +123,21 @@ def check_shared():
             if d.is_dir():
                 copies[skill_dir.name] = tree_digest(d)
         compare(rel + "/", copies)
+
+    for skill_dir in skill_dirs:
+        for pattern in BRAND_FILES:
+            for f in sorted(skill_dir.glob(pattern)):
+                try:
+                    agency = json.loads(f.read_text(encoding="utf-8")).get("agency") or {}
+                except ValueError as e:
+                    problems.append("%s is not valid JSON: %s"
+                                    % (f.relative_to(SKILLS), e))
+                    continue
+                for key, why in sorted(FORBIDDEN_BRAND_KEYS.items()):
+                    if key in agency:
+                        problems.append(
+                            "%s carries agency.%s, which is %s (contract §2b)"
+                            % (f.relative_to(SKILLS), key, why))
 
     return problems
 
@@ -170,11 +203,17 @@ def main():
 
     problems = check_shared()
     if problems:
-        print("build_standalone.py: shared files are out of step.", file=sys.stderr)
+        print("build_standalone.py: the shared-file rules do not hold "
+              "(project contract §2b).", file=sys.stderr)
         for p in problems:
             print("  " + p, file=sys.stderr)
-        print("\nThese must be byte-identical in every skill that carries them "
-              "(project contract §4).", file=sys.stderr)
+        print("\nA shared file must be byte-identical in every skill that carries "
+              "it, and must hold nothing that varies per skill.\n"
+              "Before syncing one copy over the other, check that both skills "
+              "really do want the same bytes. A value that differs per "
+              "deliverable belongs in that skill's own code, not in a shared "
+              "file - syncing it is how a sitemap ends up labelled as an audit.",
+              file=sys.stderr)
         sys.exit(1)
 
     built = generate()

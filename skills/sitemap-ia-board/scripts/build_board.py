@@ -38,6 +38,13 @@ from validate_ia import validate, load_finding_ids   # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# What this skill calls its deliverable - the hero eyebrow, the HTML <title>
+# and the right of every footer. One definition, for the same reason
+# build_data.py keeps DELIVERABLE in one place: the label was written out at
+# each site it appeared, and a rename that reaches some of them ships a
+# document disagreeing with its own title.
+DELIVERABLE = "Sitemap & Information Architecture"
+
 
 def build(project_dir, ia_path, out, agency_slug=None):
     project_dir = Path(project_dir)
@@ -83,7 +90,7 @@ def build(project_dir, ia_path, out, agency_slug=None):
         "client": project.get("client") or "Website",
         "url": project.get("url", ""),
         "date": project.get("created") or date.today().isoformat(),
-        "kind": "Sitemap & Information Architecture",
+        "kind": DELIVERABLE,
         "lede": "The proposed structure for %s: who it has to serve, the pages that serve them, "
                 "and what each section on each page is for. %d pages, %d of them new."
                 % (project.get("client") or "the site", len(pages), new_pages),
@@ -91,7 +98,7 @@ def build(project_dir, ia_path, out, agency_slug=None):
         "audience": project.get("audience", ""),
         "site_type": project.get("site_type", ""),
         "footer_left": agency.get("footer_left", "").replace("{year}", str(date.today().year)),
-        "footer_right": "Sitemap & Information Architecture",
+        "footer_right": DELIVERABLE,
         "logo_uri": brand_info.get("logo_uri", ""),
     }
 

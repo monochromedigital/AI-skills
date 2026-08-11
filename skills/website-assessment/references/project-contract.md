@@ -9,8 +9,8 @@ proposal quotes the audit. If each skill invents its own folder, its own
 identifiers, and its own copy of the other's text, the three documents drift
 apart the first time anyone edits one of them.
 
-The contract fixes four things: **where** files live (§1), **what** they are
-called and who may write them (§2, §4, §5), **how** one document points at
+The contract fixes four things: **where** files live (§1, §2b), **what** they
+are called and who may write them (§2, §4, §5), **how** one document points at
 something inside another (§3, §7), and **what happens when a file is missing**
 (§8). §6 is the check that all of it held.
 
@@ -141,6 +141,51 @@ Rules:
   sent to a client is worse than no logo at all.
 - **Logos are embedded, never linked.** These documents are single files that
   have to open offline, in an email client, and after the CDN link has rotted.
+- **What the document is called is not a brand value.** All four agencies ship
+  the same document under the same name, so the label belongs to the skill that
+  builds it. It is one constant per skill — `DELIVERABLE` — and an agency file
+  that carries it is wrong. §2b says why that distinction is worth a rule.
+
+---
+
+## §2b · Shared files and per-skill values
+
+Some files must be **byte-identical** in every skill that carries them, because
+they are what stops an audit and its board from looking like two agencies:
+
+```
+assets/ai-writing.json     references/ai-writing.md
+assets/brand.json          references/project-contract.md
+assets/brands/**           scripts/brandkit.py
+                           scripts/check_prose.py
+                           scripts/render_report.py
+```
+
+`scripts/build_standalone.py` holds that list and enforces it. A drifted copy
+fails the build — `make check`, `./package.sh`, both — rather than reaching a
+client as two documents that disagree.
+
+The rule that is easy to miss is the other direction: **a value that differs
+per skill must never be put in one of those files.** Sharing is not free
+safety; it is a promise that every skill wants the same bytes, and a value that
+does not is a drift with a delay on it.
+
+`footer_right` was the worked example. It sat in all four agency overlays, in
+both skills — eight copies of one string, in files required to match:
+
+- **A value identical in all four agency files is not an agency value.** It is
+  a value in the wrong file. The copies stayed in step by luck, not design.
+- **It drifted, as that arrangement guarantees.** The audit's label was renamed
+  in one overlay, the byte-identity check failed, and the fix the failure
+  appeared to demand — sync the copies — would have labelled a sitemap as an
+  audit. The check was right; the resolution it implied was not.
+- **The test.** Before adding anything to a shared file, ask whether a second
+  skill could ever want a different value. If it could, the value is per-skill,
+  and no amount of syncing will make it otherwise.
+
+New shared files go in `build_standalone.py`'s `SHARED` list on the same commit
+that creates them. A shared file nothing checks is shared only until somebody
+edits it.
 
 ---
 
