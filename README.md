@@ -74,6 +74,26 @@ to be byte-identical across skills actually are — `ai-writing.json`,
 `check_prose.py`, `ai-writing.md` and `project-contract.md`. A drifted copy
 fails the build here rather than in a client's report.
 
+## After cloning
+
+```bash
+make hooks
+```
+
+Points `core.hooksPath` at `.githooks/`, which runs `make check` before every
+push and refuses the push if it fails. Git does not clone hooks, so this is
+once per clone.
+
+It exists because a shared file was once edited in one skill and not the other,
+pushed straight to `main`, and left CI red for a day — two more commits merged
+on top of the red before anyone acted on it. The break entered at a push, so
+that is where it is cheapest to catch.
+
+A guardrail, not enforcement: `git push --no-verify` skips it, and that escape
+hatch is deliberate. Real enforcement is a required status check, which needs a
+paid plan on a private repo. CI is still the authority — the hook reads your
+working tree, so only the pipeline sees exactly what was pushed.
+
 ## Adding a skill
 
 1. Create `skills/<skill-name>/SKILL.md`.

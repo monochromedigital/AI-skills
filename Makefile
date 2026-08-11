@@ -18,9 +18,22 @@ SHARED := scripts/render_report.py scripts/brandkit.py scripts/check_prose.py \
           references/project-contract.md references/ai-writing.md \
           assets/brand.json assets/ai-writing.json
 
-.PHONY: all check sync zip brands clean
+.PHONY: all check hooks sync zip brands clean
 
 all: check
+
+# Point git at .githooks/, which puts `make check` in front of every push.
+# Hooks are not cloned, so this is per-clone - run it once after cloning.
+# core.hooksPath lives in the shared config, so a repo with several worktrees
+# only needs it done once.
+#
+# Required status checks would be the real answer. They need a paid plan on a
+# private repo, and this covers the case that actually bit: a shared file
+# edited in one skill, pushed straight to main, red for a day.
+hooks:
+	@git config core.hooksPath .githooks
+	@echo "  core.hooksPath -> .githooks ($$(ls .githooks | tr '\n' ' '))"
+	@echo "  bypass a single push with: git push --no-verify"
 
 check:
 	@echo "== shared files =="

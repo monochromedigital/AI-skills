@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# pre-push - runs `make check` and refuses the push if it fails.
+#
+# Why this exists: e958fc2 renamed a footer label in one skill and not the
+# other, went straight to main, and turned CI red for a day. Two more commits
+# merged on top of the red before anyone acted on it. The break entered at the
+# moment of a push, so that is the cheapest place to stop it.
+#
+# This is a guardrail, not enforcement. Required status checks would be
+# enforcement, but they need a paid plan on a private repo, and a hook is
+# bypassable by design:
+#
+#     git push --no-verify        # skip it deliberately
+#
+# That escape hatch is the point. A hook you cannot skip is a hook people
+# uninstall the first time it is wrong.
+#
+# Install it - hooks are not cloned, so this is per-clone and per-worktree:
+#
+#     make hooks
+#
+# KNOWN LIMIT: `make check` reads the working tree, not the commits being
+# pushed. Push with a dirty tree and it checks what is on disk rather than what
+# the other end will receive. It still catches the case this repo actually hits
+# - a shared file edited in one skill and committed - because that edit is on
+# disk too. Only CI sees exactly what was pushed.
+
+set -uo pipefail
+
+# Branch deletions (`git push origin --delete foo`) send an all-zero local sha
+# and have nothing to check. Running the suite on them wastes a second and, on
+# a repo mid-rebase, can fail for reasons the deletion has nothing to do with.
+zero="0000000000000000000000000000000000000000"
+has_content=0
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [ "$local_sha" = "$zero" ] || has_content=1
+done
+[ "$has_content" -eq 1 ] || exit 0
+
+repo_root=$(git rev-parse --show-toplevel) || exit 1
+cd "$repo_root" || exit 1
+
+if ! command -v make >/dev/null 2>&1; then
+  echo "pre-push: make is not installed; skipping checks." >&2
+  exit 0
+fi
+
+echo "pre-push: make check"
+if make check; then
+  exit 0
+fi
+
+cat >&2 <<'MSG'
+
+pre-push: `make check` failed - nothing was pushed.
+
+Fix it, or push anyway with:
+
+    git push --no-verify
+
+Pushing anyway turns CI red for everyone, and a red main is how the last
+break survived two more merges before anyone acted on it.
+MSG
+exit 1
