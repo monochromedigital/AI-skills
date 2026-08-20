@@ -170,6 +170,13 @@ def mask_source(src):
     A single quote only opens a string when the previous significant character
     can start an expression. Without that, the apostrophe in `<p>it's fine</p>`
     swallows the rest of the file.
+
+    A `${...}` interpolation is code rather than string, and is scanned as code,
+    tracking brace depth so the interpolation's own braces do not end it early.
+    Without that, the template literal an interpolation so often contains has its
+    opening backtick read as the closing one, and every span from there is
+    inverted - markup scanned as code, code scanned as string - until the
+    backticks happen to rebalance.
     """
     out = list(src)
     spans = []
@@ -177,6 +184,7 @@ def mask_source(src):
     state = None
     start = 0
     prev = ""
+    tmpl = []
 
     while i < n:
         c = src[i]
@@ -191,6 +199,18 @@ def mask_source(src):
                 state = "block"
                 i += 2
                 continue
+            if tmpl:
+                if c == "{":
+                    tmpl[-1] += 1
+                elif c == "}":
+                    if tmpl[-1]:
+                        tmpl[-1] -= 1
+                    else:
+                        tmpl.pop()
+                        state, start = "`", i + 1
+                        prev = c
+                        i += 1
+                        continue
             if c == "'" and (prev == "" or not (prev.isalnum() or prev in "._)]")):
                 state, start = c, i + 1
             elif c in '"`':
@@ -221,6 +241,12 @@ def mask_source(src):
 
         # inside a string literal
         if c == "\\":
+            i += 2
+            continue
+        if state == "`" and c == "$" and src[i + 1 : i + 2] == "{":
+            spans.append((start, i))
+            tmpl.append(0)
+            state = None
             i += 2
             continue
         if c == state or (c == "\n" and state in "'\""):
