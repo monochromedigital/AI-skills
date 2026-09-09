@@ -2,6 +2,13 @@
 
 Instructions for agents working in this repo.
 
+## Start here
+
+`HANDOFF.md` is the orientation document: what this project is, how it is set
+up, what state it is in, what is decided, what is open, and the checklist to run
+before touching feature code. Read it on a first session or on a new machine.
+This file carries only the rules that must not be missed.
+
 ## Never merge over a red check
 
 Before any `gh pr merge`, confirm every check has finished and passed:
