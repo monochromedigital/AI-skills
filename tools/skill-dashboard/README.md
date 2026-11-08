@@ -130,15 +130,21 @@ To turn it on, edit your cloud environment at claude.ai/code (any browser):
 
 1. **Environment variables**: paste the lines in
    `~/.claude/skill-usage/cloud-environment.env` (made for you, owner-only).
-   They switch on the reporting and carry the cloud key.
+   They switch on the reporting and carry the cloud key. Change the last line's
+   `CHANGE-TO-ENVIRONMENT-NAME` to the environment's name (no spaces): the
+   **Cloud environments** panel lists each environment by it, with its cost and
+   its last report, so one that stops reporting stands out.
 2. **Network access**: choose **Custom**, add
    `monochrome-console.monochrome-digital.workers.dev`, and tick **Also include
    default list of common package managers** so sessions keep working as before.
 
 It counts from then on; earlier cloud sessions can't be recovered. Do this only
 on the environment you use for your own work: an environment used for Crackwits
-stays uncounted. The reports don't say which repository a session worked on,
-so cloud cost appears per session and day, under "Cloud sessions".
+stays uncounted. The reports don't say which repository a session worked on
+unless `OTEL_METRICS_INCLUDE_REPOSITORY=true` is set (it is in the lines above): then each cloud row is
+filed under `cloud/<environment>/<repository>` and shows as "<repository> (cloud)".
+There is no way to give new environments these settings automatically on a
+personal plan; add them each time you make one, then check the panel.
 
 **The cloud key** (`cloudIngestToken` in `secrets.json`, `CLOUD_INGEST_TOKEN`
 on the Worker) can only add cloud rows; it can't read anything. Anthropic's

@@ -24,6 +24,11 @@ export const COST_COPY = {
       tooltip: "{cost} · {share} of the total",
       explain: "Each reply re-sends the whole conversation; caching makes that cheap but not free, which is why long sessions cost the most.",
     },
+    environments: {
+      title: "Cloud environments", caption: "{period} · every environment that has reported",
+      meta: "{sessions} sessions · last report {when}", metaOne: "1 session · last report {when}", unnamed: "Unnamed environment",
+      empty: "No cloud environment has reported yet. Each one needs the setup lines in the README.",
+    },
     unpriced: "{count} replies used models with no listed price and aren't included: {models}.",
   },
 };

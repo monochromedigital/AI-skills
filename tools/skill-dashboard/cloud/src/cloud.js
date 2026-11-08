@@ -10,7 +10,13 @@
 import { INGEST, MACHINE, sameSecret } from "./ingest.js";
 import { json, JSON_TYPE } from "./shared.js";
 
-export const CLOUD = { id: "cloud", name: "Cloud sessions", project: "Cloud sessions", entrypoint: "cloud" };
+export const CLOUD = { id: "cloud", name: "Cloud sessions", entrypoint: "cloud", unnamed: "unnamed" };
+
+// Each row's project is "cloud/<environment>/<repository>": the environment
+// comes from OTEL_RESOURCE_ATTRIBUTES=cloud.environment=<name> on the cloud
+// environment, the repository from OTEL_METRICS_INCLUDE_REPOSITORY=true. Either
+// can be missing; the Mac reads them back out of the path (cost.py).
+const projectOf = (a) => ["cloud", a["cloud.environment"] || CLOUD.unnamed, a["vcs.repository.name"]].filter(Boolean).join("/");
 const PULL_LIMIT = 5000;
 
 const value = (v) => v?.stringValue ?? (v?.intValue != null ? Number(v.intValue) : v?.doubleValue ?? v?.boolValue ?? null);
@@ -30,7 +36,7 @@ export function cloudRows(body) {
         const name = String(a["event.name"] ?? "").replace(/^claude_code\./, "");
         const session = a["ccr.session.id"] ?? a["session.id"] ?? null;
         const ts = a["event.timestamp"] ?? nanosToIso(record.timeUnixNano);
-        const base = { ts, session, project: CLOUD.project, entrypoint: CLOUD.entrypoint,
+        const base = { ts, session, project: projectOf(a), entrypoint: CLOUD.entrypoint,
           subagent: a["agent.name"] ? 1 : 0 };
         if (name === "api_request") {
           const id = a.request_id ?? a.client_request_id;

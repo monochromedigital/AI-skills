@@ -19,7 +19,7 @@ import groups
 import mcp
 from actions import available_actions, trash_entries
 from ledger import ledger_rows
-from cost import build_cost, token_projects
+from cost import CLOUD_PREFIX, build_cost, cloud_project_name, token_projects
 from usage import project_names, projects_summary, skill_sessions
 
 
@@ -136,6 +136,7 @@ def build_report(cfg, records, meta, sync_result):
             daily[local_day] += 1
 
     names = project_names({e.get("project") for _, _, e in events} | token_projects(cfg))
+    names.update({path: cloud_project_name(path) for path in names if path and path.startswith(CLOUD_PREFIX)})
     titles = _read_json(cfg["paths"]["sessions"])
     group_of = groups.resolver(cfg)
     per_skill = cfg["ui"]["sessionsPerSkill"]

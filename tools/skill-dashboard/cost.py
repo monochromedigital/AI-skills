@@ -26,6 +26,20 @@ from ledger import ledger_rows
 TOKEN_KINDS = ("input", "output", "cacheWrite", "cacheRead")
 ALL = "all"  # the all-time period's id; months use "YYYY-MM"
 CLOUD = "cloud"  # entrypoint on rows pulled from cloud sessions (cloud_pull.py)
+CLOUD_PREFIX = "cloud/"  # their project: "cloud/<environment>/<repository>" (cloud/src/cloud.js)
+UNNAMED = "unnamed"  # an environment without OTEL_RESOURCE_ATTRIBUTES=cloud.environment=...
+
+
+def cloud_environment(project):
+    """The cloud environment a cloud row's project path names."""
+    parts = (project or "").split("/")
+    return parts[1] if project and project.startswith(CLOUD_PREFIX) and len(parts) > 1 else UNNAMED
+
+
+def cloud_project_name(project):
+    """A display name for a cloud project path: its repository, or its environment when no repository was sent."""
+    parts = project.split("/")
+    return f"{parts[2] if len(parts) > 2 else parts[1]} (cloud)"
 
 
 def _when(ts):
@@ -84,6 +98,7 @@ class _Period:
         self.kinds = dict.fromkeys(TOKEN_KINDS, 0.0)
         self.series = defaultdict(float)
         self.projects, self.sessions, self.models = defaultdict(_bucket), defaultdict(_bucket), defaultdict(_bucket)
+        self.environments = defaultdict(_bucket)
 
     def add(self, row, split, cost, tokens, when, slot, model):
         session = row.get("session")
@@ -91,7 +106,10 @@ class _Period:
         for kind, value in split.items():
             self.kinds[kind] += value
         self.series[slot] += cost
-        self.sources["cloud" if row.get("entrypoint") == CLOUD else "mac"] += cost
+        cloud = row.get("entrypoint") == CLOUD
+        self.sources["cloud" if cloud else "mac"] += cost
+        if cloud:
+            _add(self.environments[cloud_environment(row.get("project"))], cost, tokens, when, row.get("session"))
         _add(self.projects[row.get("project") or ""], cost, tokens, when, session)
         if session:
             _add(self.sessions[session], cost, tokens, when, session)
@@ -168,6 +186,8 @@ def build_cost(cfg, names, titles, now):
             t = titles.get(key) or {}
             return {"id": key, "title": t.get("customTitle") or t.get("aiTitle"),
                     "project": names.get(bucket.get("project"), bucket.get("project")), "cloud": bucket.get("cloud", False)}
+        if kind == "environment":
+            return {"name": key, "named": key != UNNAMED}
         return {"model": key}
 
     def period(pid, slots):
@@ -182,6 +202,7 @@ def build_cost(cfg, names, titles, now):
             "projects": rows(p.projects, kind="project"),
             "sessions": rows(p.sessions, cfg["ui"]["costSessions"], kind="session"),
             "models": rows(p.models, kind="model"),
+            "environments": rows(p.environments, kind="environment"),
         }
 
     months = sorted((m for m in periods if m != ALL), reverse=True)

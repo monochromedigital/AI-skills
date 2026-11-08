@@ -5,7 +5,7 @@
 import { COPY, fill } from "../../content.js";
 import { DailyBars, RankedBars } from "../../charts.js";
 import { Dropdown } from "../../controls.js";
-import { compact, day, decimal, full, localDay, money, month, number, percent } from "../../format.js";
+import { compact, day, decimal, full, localDay, money, month, number, percent, relative } from "../../format.js";
 import { EmptyState, h, ListRow, Panel, SectionHead, Text } from "../../ui.js";
 
 const usd = (report) => (value) => money(value, report.cost.currency);
@@ -94,6 +94,24 @@ function KindsPanel(report, p) {
   });
 }
 
+/** Every cloud environment that has ever reported: its cost in the period and when it last reported. */
+function EnvironmentsPanel(report, p) {
+  const fmt = usd(report);
+  const t = COPY.cost.environments;
+  const inPeriod = new Map(p.environments.map((e) => [e.name, e]));
+  const everyone = report.cost.periods.find((x) => x.kind === "all")?.environments ?? [];
+  const rows = everyone.map((e) => ({ e, here: inPeriod.get(e.name) })).sort((a, b) => (b.here?.cost ?? 0) - (a.here?.cost ?? 0))
+    .map(({ e, here }) => ListRow({
+      title: e.named ? e.name : t.unnamed,
+      meta: fill(here?.sessions === 1 ? t.metaOne : t.meta, { sessions: number(here?.sessions ?? 0), when: relative(e.lastUsed, COPY.time) }),
+      trail: h("span", { class: "money", title: full(e.lastUsed) }, fmt(here?.cost ?? 0)),
+    }));
+  return Panel({
+    title: t.title, caption: fill(t.caption, { period: periodName(p) }),
+    body: rows.length ? h("ul", { class: ["list", "list--scroll"] }, rows) : EmptyState(t.empty),
+  });
+}
+
 /** The heading with its period picker, then both rows of panels for that period. */
 export function CostSection(report, periodId, { onPick, onPeriod }) {
   const p = report.cost?.periods?.length ? costPeriod(report, periodId) : null;
@@ -101,6 +119,6 @@ export function CostSection(report, periodId, { onPick, onPeriod }) {
   return [
     CostHead(report, p, onPeriod),
     h("div", { class: "band" }, SeriesPanel(report, p), ProjectsPanel(report, p, onPick)),
-    h("div", { class: "band" }, SessionsPanel(report, p), KindsPanel(report, p)),
+    h("div", { class: "band" }, SessionsPanel(report, p), KindsPanel(report, p), EnvironmentsPanel(report, p)),
   ];
 }
