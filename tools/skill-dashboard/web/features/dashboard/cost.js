@@ -21,6 +21,7 @@ export function CostDailyPanel(report) {
       DailyBars({ data: c.daily, valueOf: (d) => d.cost, xLabelFor: label, ariaLabel: COPY.cost.daily.title, tickFormat: fmt,
         tooltipFor: (d) => fill(COPY.cost.daily.tooltip, { date: label(d), cost: fmt(d.cost) }) }),
       Text({ text: fill(COPY.cost.note, { asOf: day(c.asOf) }), tone: "muted", size: "xs", as: "p" }),
+      c.leftOut ? Text({ text: fill(COPY.cost.leftOut, { label: c.leftOut.label, paths: c.leftOut.paths.join(", ") }), tone: "muted", size: "xs", as: "p" }) : null,
     ] : EmptyState(COPY.cost.daily.empty),
   });
 }

@@ -59,6 +59,11 @@
     "costSessions": 12,
     "costProjects": 12
   },
+  "costLeaveOut": {
+    "label": "Crackwits client work",
+    "paths": ["~/Desktop/Code/CRK"],
+    "why": "Crackwits pays for that Claude Code use. Skill uses there still count; only token cost is left out, and those token rows are never uploaded."
+  },
   "pricing": {
     "currency": "USD",
     "asOf": "2026-10-06",

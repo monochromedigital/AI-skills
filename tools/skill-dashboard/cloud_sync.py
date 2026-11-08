@@ -33,6 +33,7 @@ import urllib.request
 import uuid
 
 from config import load_config
+from cost import left_out
 from export import shorten_home, snapshot_report
 from inventory import _ssl_context
 
@@ -91,13 +92,19 @@ def main():
     except (OSError, ValueError):
         state = {}
 
+    # Token rows from costLeaveOut folders never leave this Mac. They are dropped inside
+    # each batch so `start` still counts lines, which is what the next run resumes from.
+    skip = left_out(cfg)
+    keep = {"events": lambda row: True, "tokens": lambda row: not skip(row.get("project"))}
     for kind, path in (("events", paths["events"]), ("tokens", paths["tokens"])):
         lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
         start = state.get(kind, 0)
         new = [json.loads(shorten_home(line)) for line in lines[start:] if line.strip()]
         written = 0
         for batch in chunks(new, cloud["chunkBytes"]):
-            written += post(kind, json.dumps(batch, separators=(",", ":")))
+            payload = [row for row in batch if keep[kind](row)]
+            if payload:
+                written += post(kind, json.dumps(payload, separators=(",", ":")))
             start += len(batch)
             state[kind] = start
             paths["cloudState"].write_text(json.dumps(state))

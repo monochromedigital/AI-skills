@@ -16,6 +16,7 @@ export const COST_COPY = {
       tooltip: "{cost} · {share} of the total",
       explain: "Each reply re-sends the whole conversation; caching makes that cheap but not free, which is why long sessions cost the most.",
     },
+    leftOut: "Leaves out {label} ({paths}), set in config.json under costLeaveOut.",
     unpriced: "{count} replies used models with no listed price and aren't included: {models}.",
   },
 };

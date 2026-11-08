@@ -83,6 +83,20 @@ link instead. Plugin changes take effect in new Claude Code sessions.
 The server listens on 127.0.0.1 only, rejects other hostnames and origins, and
 every action needs a token that only the dashboard page receives.
 
+## Cost
+
+The cost panels show what this Mac's Claude Code replies would cost at
+Anthropic API list prices (`pricing` in `config.json`, dated). You pay a flat
+plan fee, so read it as a way to compare projects and sessions, not a bill.
+Claude.ai chats in the browser aren't stored on the Mac, so they never appear.
+
+`costLeaveOut` in `config.json` lists folders whose token cost is someone
+else's: now `~/Desktop/Code/CRK` (Crackwits client work, which Crackwits pays
+for). Replies from those folders and their subfolders are left out of every
+cost figure, and their token rows are never uploaded to the online console.
+Skill uses there still count everywhere else on the page. Add a folder to the
+list to leave it out too.
+
 ## The online console: https://console.monochrome.digital
 
 A read-only copy of the dashboard on Cloudflare (account "Monochrome"), built
@@ -210,6 +224,7 @@ days that happened while the page was never opened.
 | `groups.py` | Group rules and your own group choices |
 | `usage.py` | Per-project and per-session breakdowns |
 | `actions.py` | The page's actions (single, bulk, groups), each re-checked against a fresh listing |
+| `cost.py` | API-equivalent cost per day, project, session and token kind; applies `costLeaveOut` |
 | `report.py` | Joins it all into the JSON the page renders |
 | `server.py` | Local server, security checks, background jobs |
 | `export.py` | Builds the read-only snapshot and the page without data |

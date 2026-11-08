@@ -13,9 +13,12 @@ work would cost on the API: a fair way to compare projects and sessions, not
 a bill. Replies from a model with no listed price are counted as "unpriced"
 and shown, never silently priced at zero; `pricing.free` names models that
 really cost nothing (Claude Code's "<synthetic>" placeholder replies).
+Folders in `costLeaveOut` (and everything under them) are left out entirely:
+work someone else pays for. Skill uses there still count elsewhere.
 """
 
 import json
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -38,6 +41,17 @@ def reply_cost(row, price, multiplier):
         "cacheWrite": (row.get("cw5m", 0) * multiplier["5m"] + row.get("cw1h", 0) * multiplier["1h"]) * price["input"] / m,
         "cacheRead": row.get("cr", 0) * price["cacheRead"] / m,
     }
+
+
+def left_out(cfg):
+    """A test for projects kept out of cost: the `costLeaveOut` folders and their subfolders.
+    Takes absolute or ~-shortened paths, since uploads are shortened first."""
+    roots = [os.path.expanduser(p).rstrip("/") for p in cfg.get("costLeaveOut", {}).get("paths", [])]
+
+    def test(project):
+        path = os.path.expanduser(project or "")
+        return bool(project) and any(path == r or path.startswith(r + "/") for r in roots)
+    return test
 
 
 def _bucket():
@@ -82,6 +96,7 @@ def build_cost(cfg, names, titles, now):
     daily = defaultdict(float)
     projects, sessions, models = defaultdict(_bucket), defaultdict(_bucket), defaultdict(_bucket)
     unpriced = defaultdict(int)
+    skip = left_out(cfg)
 
     try:
         lines = cfg["paths"]["tokens"].read_text(encoding="utf-8").splitlines()
@@ -94,7 +109,7 @@ def build_cost(cfg, names, titles, now):
             continue
         when = _when(row.get("ts"))
         model = row.get("model") or "unknown"
-        if not when or model in pricing["free"]:
+        if not when or model in pricing["free"] or skip(row.get("project")):
             continue
         price = pricing["models"].get(model)
         if not price:
@@ -148,4 +163,5 @@ def build_cost(cfg, names, titles, now):
         "sessions": rows(sessions, cfg["ui"]["costSessions"], kind="session"),
         "models": rows(models, kind="model"),
         "unpriced": dict(unpriced),
+        "leftOut": {k: cfg["costLeaveOut"][k] for k in ("label", "paths")} if cfg.get("costLeaveOut", {}).get("paths") else None,
     }
