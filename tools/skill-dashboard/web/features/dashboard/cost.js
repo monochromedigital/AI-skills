@@ -1,69 +1,93 @@
-// The cost section: what the token usage would cost at API list prices, per
-// day, per project, per session, and by kind of token. Numbers come from
-// cost.py on the Mac; this file only lays them out.
+// The cost section: what the token usage would cost at API list prices, for
+// one month or all time. Numbers come from cost.py on the Mac; this file only
+// lays them out. The page owns which period is shown.
 
 import { COPY, fill } from "../../content.js";
 import { DailyBars, RankedBars } from "../../charts.js";
-import { compact, day, full, localDay, money, number } from "../../format.js";
-import { EmptyState, h, ListRow, Panel, Text } from "../../ui.js";
+import { Dropdown } from "../../controls.js";
+import { compact, day, decimal, full, localDay, money, month, number } from "../../format.js";
+import { EmptyState, h, ListRow, Panel, SectionHead, Text } from "../../ui.js";
 
 const usd = (report) => (value) => money(value, report.cost.currency);
+const periodName = (p) => (p.kind === "all" ? COPY.cost.head.all : month(p.id));
 
-export function CostDailyPanel(report) {
+/** The period to show: the one asked for, else the newest month. */
+export const costPeriod = (report, id) => report.cost.periods.find((p) => p.id === id) ?? report.cost.periods[0];
+
+function planLine(report, p) {
+  const plan = report.cost.plan;
+  if (!plan?.monthlyFee || !p.cost) return null;
+  const fmt = usd(report);
+  const months = p.kind === "all" ? p.series.length : 1;
+  const paid = plan.monthlyFee * months;
+  return fill(p.kind === "all" ? COPY.cost.head.planAll : COPY.cost.head.planMonth,
+    { fee: fmt(plan.monthlyFee), paid: fmt(paid), months: number(months), ratio: decimal(p.cost / paid), period: periodName(p) });
+}
+
+function CostHead(report, p, onPeriod) {
   const c = report.cost;
   const fmt = usd(report);
-  const label = (d) => day(localDay(d.date));
-  const total = c.daily.reduce((sum, d) => sum + d.cost, 0);
-  return Panel({
-    title: COPY.cost.daily.title, className: "panel--wide",
-    caption: fill(COPY.cost.daily.caption, { days: report.windows.chartDays }),
-    body: total ? [
-      DailyBars({ data: c.daily, valueOf: (d) => d.cost, xLabelFor: label, ariaLabel: COPY.cost.daily.title, tickFormat: fmt,
-        tooltipFor: (d) => fill(COPY.cost.daily.tooltip, { date: label(d), cost: fmt(d.cost) }) }),
-      Text({ text: fill(COPY.cost.note, { asOf: day(c.asOf) }), tone: "muted", size: "xs", as: "p" }),
-      c.leftOut ? Text({ text: fill(COPY.cost.leftOut, { label: c.leftOut.label, paths: c.leftOut.paths.join(", ") }), tone: "muted", size: "xs", as: "p" }) : null,
-    ] : EmptyState(COPY.cost.daily.empty),
+  return SectionHead({
+    title: COPY.cost.head.title,
+    lines: [fill(COPY.cost.head.summary, { cost: fmt(p.cost), replies: number(p.replies), sessions: number(p.sessionCount) }),
+      planLine(report, p)],
+    notes: [fill(COPY.cost.note, { asOf: day(c.asOf) }),
+      c.leftOut ? fill(COPY.cost.leftOut, { label: c.leftOut.label, paths: c.leftOut.paths.join(", ") }) : null],
+    actions: Dropdown({ label: COPY.cost.head.period, prefix: COPY.cost.head.period, value: p.id, onChange: onPeriod,
+      options: c.periods.map((x) => ({ value: x.id, label: periodName(x), count: fmt(x.cost) })) }),
   });
 }
 
-export function CostProjectsPanel(report, onPick) {
+function SeriesPanel(report, p) {
   const fmt = usd(report);
-  const items = report.cost.projects.slice(0, report.ui.costProjects).map((p) => ({
-    id: p.path, label: p.name, value: p.cost, valueText: fmt(p.cost),
-    tooltip: [p.name, fill(COPY.cost.projects.tooltip, { cost: fmt(p.cost), tokens: compact(p.tokens), sessions: number(p.sessions) })],
+  const label = p.kind === "all" ? (d) => month(d.date, "short") : (d) => day(localDay(d.date));
+  const title = p.kind === "all" ? COPY.cost.series.month : COPY.cost.series.day;
+  return Panel({
+    title, className: "panel--wide", caption: fill(COPY.cost.series.caption, { period: periodName(p) }),
+    body: p.cost
+      ? DailyBars({ data: p.series, valueOf: (d) => d.cost, xLabelFor: label, ariaLabel: title, tickFormat: fmt,
+        tooltipFor: (d) => fill(COPY.cost.series.tooltip, { date: label(d), cost: fmt(d.cost) }) })
+      : EmptyState(COPY.cost.series.empty),
+  });
+}
+
+function ProjectsPanel(report, p, onPick) {
+  const fmt = usd(report);
+  const items = p.projects.slice(0, report.ui.costProjects).map((x) => ({
+    id: x.path, label: x.name, value: x.cost, valueText: fmt(x.cost),
+    tooltip: [x.name, fill(COPY.cost.projects.tooltip, { cost: fmt(x.cost), tokens: compact(x.tokens), sessions: number(x.sessions) })],
   }));
   return Panel({
-    title: COPY.cost.projects.title, caption: COPY.cost.projects.caption,
+    title: COPY.cost.projects.title, caption: fill(COPY.cost.projects.caption, { period: periodName(p) }),
     body: items.length ? RankedBars({ items, onSelect: (item) => onPick(item.id) }) : EmptyState(COPY.cost.projects.empty),
   });
 }
 
-export function CostSessionsPanel(report) {
+function SessionsPanel(report, p) {
   const fmt = usd(report);
-  const sessions = report.cost.sessions;
-  const rows = sessions.map((s) => ListRow({
+  const rows = p.sessions.map((s) => ListRow({
     title: s.title ?? COPY.cost.sessions.untitled,
     meta: fill(COPY.cost.sessions.meta, { project: s.project ?? COPY.table.never, replies: number(s.replies), tokens: compact(s.tokens) }),
     trail: h("span", { class: "money", title: full(s.lastUsed) }, fmt(s.cost)),
   }));
   return Panel({
-    title: COPY.cost.sessions.title, caption: fill(COPY.cost.sessions.caption, { count: sessions.length }),
+    title: COPY.cost.sessions.title, caption: fill(COPY.cost.sessions.caption, { period: periodName(p), count: rows.length }),
     body: rows.length ? h("ul", { class: ["list", "list--scroll"] }, rows) : EmptyState(COPY.cost.sessions.empty),
   });
 }
 
-export function CostKindsPanel(report) {
-  const c = report.cost;
+function KindsPanel(report, p) {
   const fmt = usd(report);
-  const total = Object.values(c.byKind).reduce((a, b) => a + b, 0) || 1;
+  const total = Object.values(p.byKind).reduce((a, b) => a + b, 0) || 1;
   const share = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 });
-  const items = Object.entries(c.byKind).sort((a, b) => b[1] - a[1]).map(([kind, value]) => ({
-    id: kind, label: COPY.cost.kinds.labels[kind] ?? kind, value, valueText: fmt(value),
-    tooltip: [COPY.cost.kinds.labels[kind] ?? kind, fill(COPY.cost.kinds.tooltip, { cost: fmt(value), share: share.format(value / total) })],
+  const name = (kind) => COPY.cost.kinds.labels[kind] ?? kind;
+  const items = Object.entries(p.byKind).sort((a, b) => b[1] - a[1]).map(([kind, value]) => ({
+    id: kind, label: name(kind), value, valueText: fmt(value),
+    tooltip: [name(kind), fill(COPY.cost.kinds.tooltip, { cost: fmt(value), share: share.format(value / total) })],
   }));
-  const unpriced = Object.entries(c.unpriced);
+  const unpriced = Object.entries(report.cost.unpriced);
   return Panel({
-    title: COPY.cost.kinds.title, caption: COPY.cost.kinds.caption,
+    title: COPY.cost.kinds.title, caption: fill(COPY.cost.kinds.caption, { period: periodName(p) }),
     body: [RankedBars({ items }),
       Text({ text: COPY.cost.kinds.explain, tone: "muted", size: "xs", as: "p" }),
       unpriced.length ? Text({ tone: "muted", size: "xs", as: "p", text: fill(COPY.cost.unpriced, {
@@ -71,7 +95,7 @@ export function CostKindsPanel(report) {
   });
 }
 
-/** The KPI tile for the top row. */
+/** The KPI tile for the top row: the rolling last few days, whatever period is picked below. */
 export function costTile(report) {
   const c = report.cost;
   return {
@@ -81,10 +105,13 @@ export function costTile(report) {
   };
 }
 
-/** Both rows of cost panels, ready to drop into the page. */
-export function CostBands(report, onPick) {
+/** The heading with its period picker, then both rows of panels for that period. */
+export function CostSection(report, periodId, { onPick, onPeriod }) {
+  const p = report.cost?.periods?.length ? costPeriod(report, periodId) : null;
+  if (!p) return [];
   return [
-    h("div", { class: "band" }, CostDailyPanel(report), CostProjectsPanel(report, onPick)),
-    h("div", { class: "band" }, CostSessionsPanel(report), CostKindsPanel(report)),
+    CostHead(report, p, onPeriod),
+    h("div", { class: "band" }, SeriesPanel(report, p), ProjectsPanel(report, p, onPick)),
+    h("div", { class: "band" }, SessionsPanel(report, p), KindsPanel(report, p)),
   ];
 }

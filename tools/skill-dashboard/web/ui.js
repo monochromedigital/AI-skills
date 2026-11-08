@@ -106,11 +106,6 @@ export const Text = ({ text, tone = "secondary", size = "sm", as = "span", title
 
 export const Code = (text) => h("code", { class: "code" }, text);
 
-export function Select({ label, options, value, onChange }) {
-  return h("select", { class: "control", "aria-label": label, onChange: (e) => onChange(e.target.value) },
-    options.map((o) => h("option", { value: o.value, selected: o.value === value }, o.label)));
-}
-
 export function SearchInput({ label, value, onInput }) {
   return h("input", { class: ["control", "control--search"], type: "search", placeholder: label, "data-focus-key": label,
     "aria-label": label, value, onInput: (e) => onInput(e.target.value) });
@@ -130,6 +125,16 @@ export function Panel({ title, caption, actions, body, className }) {
       h("div", {}, h("h2", { class: "panel__title" }, title), caption ? h("p", { class: "panel__caption" }, caption) : null),
       actions ? h("div", { class: "panel__actions" }, actions) : null),
     h("div", { class: "panel__body" }, body));
+}
+
+/** A heading over a group of panels: title, lines under it, smaller notes, and controls on the right. */
+export function SectionHead({ title, lines = [], notes = [], actions }) {
+  return h("header", { class: "section-head" },
+    h("div", { class: "section-head__text" },
+      h("h2", { class: "section-head__title" }, title),
+      lines.filter(Boolean).map((line) => h("p", { class: "section-head__line" }, line)),
+      notes.filter(Boolean).map((note) => h("p", { class: "section-head__note" }, note))),
+    actions ? h("div", { class: "section-head__actions" }, actions) : null);
 }
 
 export const EmptyState = (text) => h("p", { class: "empty" }, text);

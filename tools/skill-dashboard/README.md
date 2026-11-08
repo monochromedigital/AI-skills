@@ -90,6 +90,13 @@ Anthropic API list prices (`pricing` in `config.json`, dated). You pay a flat
 plan fee, so read it as a way to compare projects and sessions, not a bill.
 Claude.ai chats in the browser aren't stored on the Mac, so they never appear.
 
+The **Period** menu at the top of the section switches between months (bars
+per day) and All time (bars per month); the projects, sessions and cost
+breakdown follow it. `plan.monthlyFee` in `config.json` (now $100) is what you
+pay each month, so the heading can say how the API-price figure compares. The
+"API cost, last 7 days" tile at the top of the page always shows the rolling
+week.
+
 `costLeaveOut` in `config.json` lists folders whose token cost is someone
 else's: now `~/Desktop/Code/CRK` (Crackwits client work, which Crackwits pays
 for). Replies from those folders and their subfolders are left out of every

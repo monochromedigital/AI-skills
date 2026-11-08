@@ -34,6 +34,18 @@ export function relative(value, { justNow, never }) {
 export const day = (value) => (value ? dayFormat.format(toDate(value)) : "");
 export const full = (value) => (value ? fullFormat.format(toDate(value)) : "");
 export const number = (value) => numberFormat.format(value ?? 0);
+const decimalFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
+export const decimal = (value) => decimalFormat.format(value ?? 0);
+
+const monthFormats = {
+  long: new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }),
+  short: new Intl.DateTimeFormat(undefined, { month: "short", year: "numeric" }),
+};
+/** "2026-11" → "November 2026", or "Nov 2026" with style "short". */
+export function month(id, style = "long") {
+  const [year, monthNumber] = String(id).split("-").map(Number);
+  return monthFormats[style].format(new Date(year, monthNumber - 1, 1)); // Date months count from 0
+}
 
 // Whole currency units once amounts reach the threshold; cents below it.
 const CENTS_BELOW = 100;

@@ -6,7 +6,7 @@ import { COPY, fill } from "./content.js";
 import { Coverage, RecentPanel, TrashPanel } from "./features/dashboard/activity.js";
 import { McpPanel, UpdatesPanel } from "./features/dashboard/attention.js";
 import { BulkBar, planBulk } from "./features/dashboard/bulk.js";
-import { CostBands } from "./features/dashboard/cost.js";
+import { CostSection } from "./features/dashboard/cost.js";
 import { SkillDetail } from "./features/dashboard/detail.js";
 import { ProjectsPanel, RecentlyAddedPanel } from "./features/dashboard/library.js";
 import { Masthead } from "./features/dashboard/masthead.js";
@@ -21,7 +21,7 @@ const app = document.getElementById("app");
 const state = {
   report: null, error: null, loading: false, mcpChecking: false, autoChecked: false, drawer: null, machines: [], machine: null,
   table: { search: "", source: "all", status: "all", usage: "all", group: "all", project: "all", groupBy: "group", sort: { key: "uses", dir: "desc" } },
-  selection: new Set(), collapsed: new Set(), lastPicked: null,
+  selection: new Set(), collapsed: new Set(), lastPicked: null, costPeriod: null,
 };
 const slots = { table: null, bulk: null };
 const act = createHandlers({ state, reload: () => load(), render: () => render() });
@@ -117,6 +117,8 @@ function openDetail(skill) {
   });
 }
 
+const costHandlers = { onPick: (path) => showProject(path), onPeriod: (id) => { state.costPeriod = id; render(); } };
+
 // ── layout ──
 const Header = () => Masthead({ report: state.report, loading: state.loading, machines: state.machines,
   onMachine: (id) => { state.machine = id; load(); },
@@ -134,7 +136,7 @@ const render = () => keepPlace(() => {
     Header(),
     KpiRow(r),
     h("div", { class: "band" }, UsagePanel(r), TopPanel(r, (item) => openDetail(r.skills.find((s) => s.id === item.id)))),
-    ...(r.cost ? CostBands(r, showProject) : []),
+    ...(r.cost ? CostSection(r, state.costPeriod, costHandlers) : []),
     h("div", { class: "band" }, UpdatesPanel(r, act.runAction), McpPanel(r, act.runAction, state.mcpChecking)),
     h("div", { class: "band" }, ProjectsPanel(r, showProject), RecentlyAddedPanel(r, openDetail), RecentPanel(r), TrashPanel(r, act.runAction)),
     slots.table,

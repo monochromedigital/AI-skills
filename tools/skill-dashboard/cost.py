@@ -20,9 +20,10 @@ work someone else pays for. Skill uses there still count elsewhere.
 import json
 import os
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 TOKEN_KINDS = ("input", "output", "cacheWrite", "cacheRead")
+ALL = "all"  # the all-time period's id; months use "YYYY-MM"
 
 
 def _when(ts):
@@ -83,19 +84,56 @@ def token_projects(cfg):
     return paths
 
 
+class _Period:
+    """Everything the page shows for one month, or for all time."""
+
+    def __init__(self):
+        self.total = _bucket()
+        self.kinds = dict.fromkeys(TOKEN_KINDS, 0.0)
+        self.series = defaultdict(float)
+        self.projects, self.sessions, self.models = defaultdict(_bucket), defaultdict(_bucket), defaultdict(_bucket)
+
+    def add(self, row, split, cost, tokens, when, slot, model):
+        session = row.get("session")
+        _add(self.total, cost, tokens, when, session)
+        for kind, value in split.items():
+            self.kinds[kind] += value
+        self.series[slot] += cost
+        _add(self.projects[row.get("project") or ""], cost, tokens, when, session)
+        if session:
+            _add(self.sessions[session], cost, tokens, when, session)
+            self.sessions[session].setdefault("project", row.get("project"))
+        _add(self.models[model], cost, tokens, when, session)
+
+
+def _month_days(month, first_day, today):
+    """Every day of `month` ("2026-11"), from its first day with data at the earliest, to today at the latest."""
+    year, number = map(int, month.split("-"))
+    start = max(date(year, number, 1), first_day)
+    end = min(date(year + number // 12, number % 12 + 1, 1) - timedelta(days=1), today)
+    return [start + timedelta(days=i) for i in range((end - start).days + 1)]
+
+
+def _months(first, last):
+    """Month ids from `first` to `last` inclusive."""
+    out, (year, number) = [], map(int, first.split("-"))
+    while f"{year:04d}-{number:02d}" <= last:
+        out.append(f"{year:04d}-{number:02d}")
+        year, number = (year + 1, 1) if number == 12 else (year, number + 1)
+    return out
+
+
 def build_cost(cfg, names, titles, now):
-    """The cost section of the report. `names` maps project paths to display names."""
+    """The cost section of the report: one breakdown per month, newest first, then all time.
+    `names` maps project paths to display names."""
     pricing, win = cfg["pricing"], cfg["windows"]
     recent_from = now - timedelta(days=win["recentDays"])
     previous_from = recent_from - timedelta(days=win["recentDays"])
-    chart_from = (now - timedelta(days=win["chartDays"] - 1)).astimezone().date()
-    month_start = now.astimezone().date().replace(day=1)
-
+    this_month = now.astimezone().strftime("%Y-%m")
     totals = {"all": 0.0, "recent": 0.0, "previous": 0.0, "month": 0.0}
-    kinds = dict.fromkeys(TOKEN_KINDS, 0.0)
-    daily = defaultdict(float)
-    projects, sessions, models = defaultdict(_bucket), defaultdict(_bucket), defaultdict(_bucket)
+    periods = defaultdict(_Period)
     unpriced = defaultdict(int)
+    first_day = None
     skip = left_out(cfg)
 
     try:
@@ -118,33 +156,26 @@ def build_cost(cfg, names, titles, now):
         split = reply_cost(row, price, pricing["cacheWriteMultiplier"])
         cost = sum(split.values())
         tokens = sum(row.get(k, 0) for k in ("in", "out", "cw5m", "cw1h", "cr"))
-        for kind, value in split.items():
-            kinds[kind] += value
+        local = when.astimezone()
+        month = local.strftime("%Y-%m")
+        first_day = min(first_day or local.date(), local.date())
         totals["all"] += cost
         if when >= recent_from:
             totals["recent"] += cost
         elif when >= previous_from:
             totals["previous"] += cost
-        day = when.astimezone().date()
-        if day >= month_start:
+        if month == this_month:
             totals["month"] += cost
-        if day >= chart_from:
-            daily[day] += cost
-        session = row.get("session")
-        _add(projects[row.get("project") or ""], cost, tokens, when, session)
-        if session:
-            _add(sessions[session], cost, tokens, when, session)
-            sessions[session].setdefault("project", row.get("project"))
-        _add(models[model], cost, tokens, when, session)
+        periods[month].add(row, split, cost, tokens, when, local.date().isoformat(), model)
+        periods[ALL].add(row, split, cost, tokens, when, month, model)
 
-    def rows(buckets, limit=None, **extra):
+    def rows(buckets, limit=None, kind=None):
         ordered = sorted(buckets.items(), key=lambda kv: -kv[1]["cost"])[:limit]
         return [{"cost": round(b["cost"], 4), "tokens": b["tokens"], "replies": b["replies"],
-                 "sessions": len(b["sessions"]), "lastUsed": b["last"].isoformat(), **extra_fields(key, b, extra)}
+                 "sessions": len(b["sessions"]), "lastUsed": b["last"].isoformat(), **extra_fields(key, b, kind)}
                 for key, b in ordered]
 
-    def extra_fields(key, bucket, extra):
-        kind = extra.get("kind")
+    def extra_fields(key, bucket, kind):
         if kind == "project":
             return {"path": key, "name": names.get(key, key or "—")}
         if kind == "session":
@@ -153,15 +184,28 @@ def build_cost(cfg, names, titles, now):
                     "project": names.get(bucket.get("project"), bucket.get("project"))}
         return {"model": key}
 
-    days = [chart_from + timedelta(days=i) for i in range(win["chartDays"])]
+    def period(pid, slots):
+        p = periods[pid]
+        return {
+            "id": pid, "kind": "all" if pid == ALL else "month",
+            "cost": round(p.total["cost"], 4), "tokens": p.total["tokens"], "replies": p.total["replies"],
+            "sessionCount": len(p.total["sessions"]),
+            "byKind": {k: round(v, 4) for k, v in p.kinds.items()},
+            "series": [{"date": slot, "cost": round(p.series.get(slot, 0.0), 4)} for slot in slots],
+            "projects": rows(p.projects, kind="project"),
+            "sessions": rows(p.sessions, cfg["ui"]["costSessions"], kind="session"),
+            "models": rows(p.models, kind="model"),
+        }
+
+    months = sorted((m for m in periods if m != ALL), reverse=True)
+    today = now.astimezone().date()
+    leave_out = cfg.get("costLeaveOut", {})
     return {
         "currency": pricing["currency"], "asOf": pricing["asOf"],
+        "plan": {"monthlyFee": cfg["plan"]["monthlyFee"]} if cfg.get("plan", {}).get("monthlyFee") else None,
         "totals": {k: round(v, 4) for k, v in totals.items()},
-        "byKind": {k: round(v, 4) for k, v in kinds.items()},
-        "daily": [{"date": d.isoformat(), "cost": round(daily.get(d, 0.0), 4)} for d in days],
-        "projects": rows(projects, kind="project"),
-        "sessions": rows(sessions, cfg["ui"]["costSessions"], kind="session"),
-        "models": rows(models, kind="model"),
+        "periods": [period(m, [d.isoformat() for d in _month_days(m, first_day, today)]) for m in months]
+                   + ([period(ALL, _months(months[-1], months[0]))] if months else []),
         "unpriced": dict(unpriced),
-        "leftOut": {k: cfg["costLeaveOut"][k] for k in ("label", "paths")} if cfg.get("costLeaveOut", {}).get("paths") else None,
+        "leftOut": {k: leave_out[k] for k in ("label", "paths")} if leave_out.get("paths") else None,
     }

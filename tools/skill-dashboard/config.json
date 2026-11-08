@@ -59,6 +59,7 @@
     "costSessions": 12,
     "costProjects": 12
   },
+  "plan": { "monthlyFee": 100, "note": "What you pay for your Claude plan each month, to compare against API-price cost." },
   "costLeaveOut": {
     "label": "Crackwits client work",
     "paths": ["~/Desktop/Code/CRK"],
