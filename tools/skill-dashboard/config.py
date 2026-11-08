@@ -37,6 +37,7 @@ def load_config():
         secrets=data / "secrets.json",
         machine=data / "machine.json",
         cloudState=data / "cloud-state.json",
+        cloudEnvFile=data / "cloud-environment.env",  # the lines to paste into a cloud environment (holds the cloud key)
         seen=data / "seen.json",
         groups=data / "groups.json",
         state=data / "state.json",

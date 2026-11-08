@@ -144,7 +144,12 @@ stays uncounted. The reports don't say which repository a session worked on
 unless `OTEL_METRICS_INCLUDE_REPOSITORY=true` is set (it is in the lines above): then each cloud row is
 filed under `cloud/<environment>/<repository>` and shows as "<repository> (cloud)".
 There is no way to give new environments these settings automatically on a
-personal plan; add them each time you make one, then check the panel.
+personal plan; add them each time you make one, then check the panel. The
+panel's **How to add one** button shows the steps, and on this Mac the
+personal skill `cloud-env-tracking` (`~/.claude/skills/cloud-env-tracking`)
+does them in the browser when you ask Claude to "set up cloud tracking for
+<environment>": it checks each environment, adds only what's missing, and
+never types the key (it puts it on your clipboard for you to paste).
 
 **The cloud key** (`cloudIngestToken` in `secrets.json`, `CLOUD_INGEST_TOKEN`
 on the Worker) can only add cloud rows; it can't read anything. Anthropic's

@@ -1,6 +1,20 @@
 // Words for the cost section. Merged into COPY by content.js.
 
 export const COST_COPY = {
+  cloudGuide: {
+    title: "Add a cloud environment",
+    intro: "Each cloud environment reports its usage only after these settings are added. claude.ai can't copy them to new environments, so do this every time you make one.",
+    steps: [
+      "On claude.ai/code, stay on the new-session screen and open the environment menu: the first control under the message box.",
+      "Find the environment under Cloud (or More), hover it and click its gear icon. For a brand-new one, choose New environment.",
+      "Environment variables: keep what's there and add the lines from {file} on your Mac (they hold the upload key). Change the last line to the environment's name, with no spaces. Save changes.",
+      "Network access: if it's Limited, add {host} on its own line and keep Allow package managers ticked. Full needs nothing. Save changes.",
+      "Run any short session in it. After the next sync (every morning, or Check for updates on the Mac) it appears in Cloud environments with its last report.",
+    ],
+    check: "If an environment you've used never appears in Cloud environments, it's missing these settings.",
+    skill: "On your Mac you can also ask Claude: \"set up cloud tracking for <environment>\". The cloud-env-tracking skill does these steps in the browser and checks them.",
+    close: "Close",
+  },
   cost: {
     head: {
       title: "Token cost",
@@ -25,9 +39,9 @@ export const COST_COPY = {
       explain: "Each reply re-sends the whole conversation; caching makes that cheap but not free, which is why long sessions cost the most.",
     },
     environments: {
-      title: "Cloud environments", caption: "{period} · every environment that has reported",
+      title: "Cloud environments", caption: "{period} · every environment that has reported", howTo: "How to add one",
       meta: "{sessions} sessions · last report {when}", metaOne: "1 session · last report {when}", unnamed: "Unnamed environment",
-      empty: "No cloud environment has reported yet. Each one needs the setup lines in the README.",
+      empty: "No cloud environment has reported yet. Each one needs the settings in How to add one.",
     },
     unpriced: "{count} replies used models with no listed price and aren't included: {models}.",
   },

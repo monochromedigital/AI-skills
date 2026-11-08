@@ -6,7 +6,7 @@ import { COPY, fill } from "../../content.js";
 import { DailyBars, RankedBars } from "../../charts.js";
 import { Dropdown } from "../../controls.js";
 import { compact, day, decimal, full, localDay, money, month, number, percent, relative } from "../../format.js";
-import { EmptyState, h, ListRow, Panel, SectionHead, Text } from "../../ui.js";
+import { Button, EmptyState, h, ListRow, Panel, SectionHead, Text } from "../../ui.js";
 
 const usd = (report) => (value) => money(value, report.cost.currency);
 const periodName = (p) => (p.kind === "all" ? COPY.cost.head.all : month(p.id));
@@ -95,7 +95,7 @@ function KindsPanel(report, p) {
 }
 
 /** Every cloud environment that has ever reported: its cost in the period and when it last reported. */
-function EnvironmentsPanel(report, p) {
+function EnvironmentsPanel(report, p, onHelp) {
   const fmt = usd(report);
   const t = COPY.cost.environments;
   const inPeriod = new Map(p.environments.map((e) => [e.name, e]));
@@ -108,17 +108,18 @@ function EnvironmentsPanel(report, p) {
     }));
   return Panel({
     title: t.title, caption: fill(t.caption, { period: periodName(p) }),
+    actions: onHelp ? Button({ label: t.howTo, icon: "info", size: "sm", onClick: onHelp }) : null,
     body: rows.length ? h("ul", { class: ["list", "list--scroll"] }, rows) : EmptyState(t.empty),
   });
 }
 
 /** The heading with its period picker, then both rows of panels for that period. */
-export function CostSection(report, periodId, { onPick, onPeriod }) {
+export function CostSection(report, periodId, { onPick, onPeriod, onHelp }) {
   const p = report.cost?.periods?.length ? costPeriod(report, periodId) : null;
   if (!p) return [];
   return [
     CostHead(report, p, onPeriod),
     h("div", { class: "band" }, SeriesPanel(report, p), ProjectsPanel(report, p, onPick)),
-    h("div", { class: "band" }, SessionsPanel(report, p), KindsPanel(report, p), EnvironmentsPanel(report, p)),
+    h("div", { class: "band" }, SessionsPanel(report, p), KindsPanel(report, p), EnvironmentsPanel(report, p, onHelp)),
   ];
 }

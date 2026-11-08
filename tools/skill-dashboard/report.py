@@ -11,6 +11,7 @@ built-in commands fall away without a list of them living here.
 """
 
 import json
+from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePath
@@ -173,6 +174,9 @@ def build_report(cfg, records, meta, sync_result):
         "generatedAt": now.isoformat(),
         "windows": win,
         "links": cfg["links"],
+        # What the cloud setup guide names; never the key itself.
+        "cloudSetup": {"host": urlparse(cfg["cloud"]["ingestUrl"]).hostname,
+                       "envFile": str(cfg["paths"]["cloudEnvFile"]).replace(str(Path.home()), "~")},
         "ui": cfg["ui"],
         "paths": {"trash": str(cfg["paths"]["trash"]).replace(str(Path.home()), "~", 1)},
         "kpis": {
