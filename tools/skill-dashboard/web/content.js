@@ -13,6 +13,7 @@ export const COPY = {
     lede: "Every skill on this Mac, how often Claude reaches for it, and what needs attention.",
     synced: "Synced {when}",
     snapshot: "Snapshot from {when} · read-only, refreshed daily",
+    machine: "Mac",
     refresh: "Refresh",
     checkUpdates: "Check for updates",
     loading: "Reading your sessions…",

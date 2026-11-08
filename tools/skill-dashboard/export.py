@@ -30,6 +30,7 @@ from report import build_report
 
 TOKEN_META = '<meta name="dashboard-token" content="{{DASHBOARD_TOKEN}}">'
 DATA_META = '<meta name="dashboard-data" content="{url}">\n  <meta name="robots" content="noindex, nofollow">'
+MACHINES_META = '\n  <meta name="dashboard-machines" content="{url}">'
 
 
 def shorten_home(text):
@@ -49,7 +50,7 @@ def snapshot_report(cfg, machine, check_mcp=True, log=print):
     return json.loads(shorten_home(json.dumps(report)))
 
 
-def write_site(cfg, site_dir, data_url, log=print):
+def write_site(cfg, site_dir, data_url, machines_url=None, log=print):
     web = cfg["paths"]["web"]
     index = (web / "index.html").read_text()
     if TOKEN_META not in index:
@@ -57,7 +58,8 @@ def write_site(cfg, site_dir, data_url, log=print):
     site = Path(site_dir)
     shutil.rmtree(site / "web", ignore_errors=True)  # drop files the page no longer uses
     shutil.copytree(web, site / "web", ignore=shutil.ignore_patterns("index.html", ".DS_Store"))
-    (site / "index.html").write_text(index.replace(TOKEN_META, DATA_META.format(url=data_url)))
+    metas = DATA_META.format(url=data_url) + (MACHINES_META.format(url=machines_url) if machines_url else "")
+    (site / "index.html").write_text(index.replace(TOKEN_META, metas))
     log(f"Page written to {site}")
     return site
 

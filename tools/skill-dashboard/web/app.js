@@ -1,7 +1,7 @@
 // Page layer: owns state, loads the report and lays out the panels. Clicks are
 // handled in handlers.js; nothing below this file talks to the server.
 
-import { fetchReport } from "./api.js";
+import { fetchMachines, fetchReport } from "./api.js";
 import { COPY, fill } from "./content.js";
 import { Coverage, RecentPanel, TrashPanel } from "./features/dashboard/activity.js";
 import { McpPanel, UpdatesPanel } from "./features/dashboard/attention.js";
@@ -19,7 +19,7 @@ import { h } from "./ui.js";
 
 const app = document.getElementById("app");
 const state = {
-  report: null, error: null, loading: false, mcpChecking: false, autoChecked: false, drawer: null,
+  report: null, error: null, loading: false, mcpChecking: false, autoChecked: false, drawer: null, machines: [], machine: null,
   table: { search: "", source: "all", status: "all", usage: "all", group: "all", project: "all", groupBy: "group", sort: { key: "uses", dir: "desc" } },
   selection: new Set(), collapsed: new Set(), lastPicked: null,
 };
@@ -30,7 +30,7 @@ async function load({ refresh = false } = {}) {
   state.loading = true;
   render();
   try {
-    state.report = await fetchReport(refresh);
+    [state.report, state.machines] = await Promise.all([fetchReport(refresh, state.machine), fetchMachines()]);
     state.error = null;
     const ids = new Set(state.report.skills.map((s) => s.id));
     state.selection = new Set([...state.selection].filter((id) => ids.has(id)));
@@ -80,24 +80,28 @@ function Bulk() {
   });
 }
 
-/** Re-draw only the table and bulk bar, keeping the table's scroll position and whichever control had focus. */
-function refreshTable() {
+/** Redraw without losing the table's scroll position or the control that had focus (matched by data-focus-key). */
+function keepPlace(redraw) {
   const scroll = slots.table?.querySelector(".table-wrap")?.scrollTop ?? 0;
-  const focusKey = slots.table?.contains(document.activeElement) ? document.activeElement.dataset.focusKey : null;
+  const focusKey = app.contains(document.activeElement) ? document.activeElement.dataset.focusKey : null;
+  redraw();
+  const wrap = slots.table?.querySelector(".table-wrap");
+  if (wrap) wrap.scrollTop = scroll;
+  const again = focusKey && [...app.querySelectorAll("[data-focus-key]")].find((el) => el.dataset.focusKey === focusKey);
+  if (!again) return;
+  again.focus();
+  if (again.setSelectionRange) again.setSelectionRange(again.value.length, again.value.length);
+}
+
+/** Re-draw only the table and bulk bar. */
+const refreshTable = () => keepPlace(() => {
   const table = Table();
   slots.table.replaceWith(table);
   slots.table = table;
-  const wrap = table.querySelector(".table-wrap");
-  if (wrap) wrap.scrollTop = scroll;
   const bulk = Bulk();
   slots.bulk.replaceWith(bulk);
   slots.bulk = bulk;
-  const again = focusKey && [...table.querySelectorAll("[data-focus-key]")].find((el) => el.dataset.focusKey === focusKey);
-  if (again) {
-    again.focus();
-    if (again.setSelectionRange) again.setSelectionRange(again.value.length, again.value.length);
-  }
-}
+});
 
 function showProject(path) {
   tableHandlers.setTable({ project: path, search: "", group: "all" });
@@ -114,16 +118,16 @@ function openDetail(skill) {
 }
 
 // ── layout ──
-const Header = () => Masthead({ report: state.report, loading: state.loading,
+const Header = () => Masthead({ report: state.report, loading: state.loading, machines: state.machines,
+  onMachine: (id) => { state.machine = id; load(); },
   onRefresh: () => load(), onCheckUpdates: () => load({ refresh: true }) });
 
-function render() {
+const render = () => keepPlace(() => {
   const r = state.report;
   if (!r) {
     app.replaceChildren(Header(), h("p", { class: "empty" }, state.error ? fill(COPY.page.loadFailed, { error: state.error }) : COPY.page.loading));
     return;
   }
-  const scroll = slots.table?.querySelector(".table-wrap")?.scrollTop ?? 0;
   slots.table = Table();
   slots.bulk = Bulk();
   app.replaceChildren(
@@ -136,8 +140,6 @@ function render() {
     slots.table,
     Coverage(r),
     slots.bulk);
-  const wrap = slots.table.querySelector(".table-wrap");
-  if (wrap) wrap.scrollTop = scroll;
-}
+});
 
 load();

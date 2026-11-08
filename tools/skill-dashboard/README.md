@@ -148,9 +148,11 @@ created on the first sync). On the other Mac:
 5. **Optional:** the session-start hook below, so nothing is lost to the
    30-day transcript cleanup.
 
-The console shows one Mac's snapshot at a time: the one that synced most
-recently. All Macs' rows are in the database (`/api/machines` lists them), but
-the page doesn't have a Mac switcher yet.
+The console opens on the Mac that synced most recently. Once a second Mac has
+uploaded a snapshot, a **Mac** picker appears in the header, listing each Mac
+with its last sync; choosing one loads that Mac's snapshot. The list comes from
+`/api/machines` (behind the same sign-in), and the page only reads it online,
+so the local dashboard never shows the picker.
 
 ## Where the data lives
 

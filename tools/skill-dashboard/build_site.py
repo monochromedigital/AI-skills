@@ -12,4 +12,4 @@ from export import write_site
 
 if __name__ == "__main__":
     cfg = load_config()
-    write_site(cfg, TOOL_DIR / "cloud" / "public", cfg["cloud"]["dataPath"])
+    write_site(cfg, TOOL_DIR / "cloud" / "public", cfg["cloud"]["dataPath"], machines_url=cfg["cloud"]["machinesPath"])

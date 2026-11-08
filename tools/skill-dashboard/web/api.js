@@ -6,14 +6,27 @@
 const meta = (name) => document.querySelector(`meta[name="${name}"]`)?.content;
 const TOKEN = meta("dashboard-token");
 const SNAPSHOT_DATA = meta("dashboard-data");
+const MACHINES = meta("dashboard-machines"); // online console only: every Mac that has synced
 const TOKEN_HEADER = "X-Dashboard-Token";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function fetchReport(refresh = false) {
-  const response = await fetch(SNAPSHOT_DATA ?? `/api/report${refresh ? "?refresh=1" : ""}`, { cache: "no-store" });
+export async function fetchReport(refresh = false, machine = null) {
+  const snapshot = SNAPSHOT_DATA && machine ? `${SNAPSHOT_DATA}?machine=${encodeURIComponent(machine)}` : SNAPSHOT_DATA;
+  const response = await fetch(snapshot ?? `/api/report${refresh ? "?refresh=1" : ""}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   return response.json();
+}
+
+/** The Macs that have uploaded a snapshot, newest sync first; empty when there is no list to read. */
+export async function fetchMachines() {
+  if (!MACHINES) return [];
+  try {
+    const response = await fetch(MACHINES, { cache: "no-store" });
+    return response.ok ? (await response.json()).filter((m) => m.generatedAt) : [];
+  } catch {
+    return [];
+  }
 }
 
 /** Start an action and resolve with the finished job: { status: "done" | "failed", result, error, log }. */
