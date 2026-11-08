@@ -1,0 +1,25 @@
+{
+  // The Monochrome console. See src/worker.js for what each address serves.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "monochrome-console",
+  // The "Monochrome" Cloudflare account (owns monochrome.digital). Pinned so a
+  // deploy can't land in another account the CLI happens to be signed in to.
+  "account_id": "55dcb446c6bf58a1caccfba55d6c730c",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  // Kept on for uploads from each Mac; the Worker serves nothing else there.
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [{ "pattern": "console.monochrome.digital", "custom_domain": true }],
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "monochrome-console", "database_id": "537f76bb-6599-4dea-b063-4bf3647fccdf", "migrations_dir": "migrations" }
+  ],
+  // Cloudflare Access app "Monochrome Console" (Zero Trust team autumn-block-83f7).
+  // Neither value is secret: they say which sign-ins to trust. Empty = refuse all data.
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "autumn-block-83f7.cloudflareaccess.com",
+    "ACCESS_AUD": "4899ee68beee66a45c5f3e4fe39043748e8c24a0c3d5c578e8f2b6d713ece360"
+  },
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Sends this Mac's data to the online console (Cloudflare Worker + D1).
+
+What goes up, each run:
+  - new lines of events.jsonl (skill uses) and tokens.jsonl (token usage),
+    counted from where the last run stopped (cloud-state.json);
+  - every session title (a few hundred short rows);
+  - a fresh read-only dashboard snapshot (see export.snapshot_report).
+
+Rows are re-sendable: the database ignores ids it already has, so a run that
+stops halfway loses nothing and the next run simply carries on. Uploads are
+split into chunks of cloud.chunkBytes so each request stays well inside the
+Worker's limits.
+
+Each Mac gets a random id once (machine.json), so two laptops never mix their
+rows. The upload token lives in ~/.claude/skill-usage/secrets.json (owner-only
+permissions), never in the repo.
+
+Run daily by the Claude app's scheduled task; run by hand any time.
+"""
+
+import sys
+
+sys.dont_write_bytecode = True
+
+import json
+import platform
+import subprocess
+import time
+import urllib.parse
+import urllib.request
+import uuid
+
+from config import load_config
+from export import shorten_home, snapshot_report
+from inventory import _ssl_context
+
+
+def machine_identity(cfg):
+    path = cfg["paths"]["machine"]
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        pass
+    try:
+        name = subprocess.run(["scutil", "--get", "ComputerName"], capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        name = ""
+    machine = {"id": uuid.uuid4().hex, "name": name or platform.node()}
+    path.write_text(json.dumps(machine))
+    return machine
+
+
+def chunks(records, limit):
+    batch, size = [], 2
+    for record in records:
+        line = json.dumps(record, separators=(",", ":"))
+        if batch and size + len(line) + 1 > limit:
+            yield batch
+            batch, size = [], 2
+        batch.append(record)
+        size += len(line) + 1
+    if batch:
+        yield batch
+
+
+def main():
+    cfg = load_config()
+    cloud, paths = cfg["cloud"], cfg["paths"]
+    token = json.loads(paths["secrets"].read_text())["cloud"]["ingestToken"]
+    machine = machine_identity(cfg)
+    context = _ssl_context(cfg["updates"]["caBundles"])
+    log = lambda m: print(f"{time.strftime('%H:%M:%S')}  {m}", flush=True)
+
+    def post(kind, body):
+        request = urllib.request.Request(
+            f"{cloud['ingestUrl']}/api/ingest/{kind}", data=body.encode(), method="POST",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json",
+                     "X-Machine-Id": machine["id"], "X-Machine-Name": urllib.parse.quote(machine["name"]),
+                     "User-Agent": "monochrome-console-sync"})
+        with urllib.request.urlopen(request, timeout=cloud["timeoutSeconds"], context=context) as response:
+            return json.loads(response.read())["written"]
+
+    report = snapshot_report(cfg, machine, log=log)  # also syncs the local ledger first
+    try:
+        state = json.loads(paths["cloudState"].read_text())
+    except (OSError, ValueError):
+        state = {}
+
+    for kind, path in (("events", paths["events"]), ("tokens", paths["tokens"])):
+        lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+        start = state.get(kind, 0)
+        new = [json.loads(shorten_home(line)) for line in lines[start:] if line.strip()]
+        written = 0
+        for batch in chunks(new, cloud["chunkBytes"]):
+            written += post(kind, json.dumps(batch, separators=(",", ":")))
+            start += len(batch)
+            state[kind] = start
+            paths["cloudState"].write_text(json.dumps(state))
+        log(f"{kind}: {len(new)} new, {written} stored")
+
+    titles = json.loads(paths["sessions"].read_text()) if paths["sessions"].exists() else {}
+    sessions = [{"id": sid, "title": t.get("customTitle") or t.get("aiTitle"), "custom": int(bool(t.get("customTitle")))}
+                for sid, t in titles.items()]
+    for batch in chunks(sessions, cloud["chunkBytes"]):
+        post("sessions", json.dumps(batch, separators=(",", ":")))
+    log(f"sessions: {len(sessions)} sent")
+
+    post("snapshot", json.dumps(report, separators=(",", ":")))
+    log(f"snapshot sent for {machine['name']} ({len(report['skills'])} skills)")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception as exc:
+        print(f"FAILED: {exc}", flush=True)
+        sys.exit(1)

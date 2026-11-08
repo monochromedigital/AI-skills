@@ -1,0 +1,73 @@
+{
+  "paths": {
+    "claudeHome": "~/.claude",
+    "dataDir": "~/.claude/skill-usage",
+    "repoSkills": "../../skills",
+    "repoDist": "../../dist"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 4477,
+    "inventoryCacheSeconds": 60,
+    "maxBodyBytes": 65536
+  },
+  "windows": {
+    "recentDays": 7,
+    "chartDays": 30,
+    "topSkills": 10,
+    "recentEvents": 25
+  },
+  "lock": {
+    "waitSeconds": 20
+  },
+  "synced": {
+    "skillPrefix": "anthropic-skills"
+  },
+  "updates": {
+    "checkRemote": true,
+    "timeoutSeconds": 6,
+    "cacheHours": 6,
+    "retryMinutes": 10,
+    "rawBase": "https://raw.githubusercontent.com",
+    "caBundles": ["/etc/ssl/cert.pem", "/opt/homebrew/etc/openssl@3/cert.pem", "/usr/local/etc/openssl@3/cert.pem"],
+    "upstream": {}
+  },
+  "cli": {
+    "claude": "claude",
+    "timeoutSeconds": 300
+  },
+  "mcp": {
+    "checkTimeoutSeconds": 120,
+    "loginTimeoutSeconds": 600,
+    "checkFromDir": "~"
+  },
+  "links": {
+    "accountSkills": "https://claude.ai/settings/capabilities"
+  },
+  "cloud": {
+    "ingestUrl": "https://monochrome-console.monochrome-digital.workers.dev",
+    "dataPath": "/api/report",
+    "chunkBytes": 400000,
+    "timeoutSeconds": 60
+  },
+  "ui": {
+    "pollMilliseconds": 1000,
+    "dropdownSearchMin": 8,
+    "newBadgeDays": 7,
+    "recentlyAdded": 8,
+    "sessionsPerSkill": 8
+  },
+  "groupsOther": "Other",
+  "groups": [
+    { "id": "seo", "name": "SEO", "match": ["*seo*", "schema", "site-architecture", "site-check", "sitemap-ia-board", "directory-submissions"] },
+    { "id": "animation", "name": "Animation", "match": ["animat*", "*-animation*", "ask-sonner"] },
+    { "id": "figma", "name": "Figma", "match": ["figma:*"] },
+    { "id": "shopify", "name": "Shopify", "match": ["shopify-*", "ucp"] },
+    { "id": "vercel", "name": "Vercel & Next.js", "match": ["vercel:*"] },
+    { "id": "frontend", "name": "Front-end & design", "match": ["frontend-design:*", "impeccable", "design-*", "ui-*", "apple-design", "atomic-design", "emil-design-eng", "psychology-of-design", "banner-design", "canvas-design", "algorithmic-art", "break-ui", "prototype", "pick-ui-library", "mobile-native", "scroll-*", "threejs-scene", "a11y-audit:*", "write-swift", "brand", "website-assessment", "engineering-skills:epic-design", "engineering-skills:senior-frontend"] },
+    { "id": "engineering", "name": "Engineering", "match": ["engineering-skills:*", "engineering-advanced-skills:*", "claude-code-setup:*"] },
+    { "id": "marketing", "name": "Marketing & growth", "match": ["ab-testing", "ad-creative", "ads", "analytics", "aso", "attribution", "churn-prevention", "co-marketing", "cold-email", "community-marketing", "competitor*", "content-*", "copy*", "cro", "customer-research", "emails", "free-tools", "influencer-marketing", "launch", "lead-magnets", "marketing-*", "offers", "onboarding", "paywalls", "popups", "pricing", "product-marketing", "prospecting", "public-relations", "referrals", "revops", "sales-enablement", "signup", "sms", "social", "image", "video"] },
+    { "id": "workflow", "name": "Claude workflow", "match": ["task-observer", "graphify", "claude-mem:*", "linear-*", "anthropic-skills:skill-creator", "anthropic-skills:import-memory", "update-config", "fewer-permission-prompts", "claude-in-chrome", "artifact-*", "dataviz"] },
+    { "id": "documents", "name": "Documents & slides", "match": ["anthropic-skills:*", "slides"] }
+  ]
+}

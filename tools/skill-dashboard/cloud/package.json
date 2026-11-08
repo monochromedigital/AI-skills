@@ -1,0 +1,12 @@
+{
+  "name": "monochrome-console",
+  "private": true,
+  "description": "The Monochrome console on Cloudflare: Worker + D1 + static page, behind Cloudflare Access.",
+  "scripts": {
+    "migrate": "wrangler d1 migrations apply monochrome-console --remote",
+    "deploy": "python3 ../build_site.py && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
+  }
+}

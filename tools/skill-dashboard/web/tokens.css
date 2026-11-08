@@ -1,0 +1,207 @@
+/* Design tokens: the only file in web/ that holds raw values.
+   Chart colours and ink follow the dataviz skill's reference palette
+   (series-1 blue, status good/warning/serious/critical, chart chrome),
+   with the dark column selected per step, not inverted. */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces & ink */
+  --color-page: #f9f9f7;
+  --color-surface: #fcfcfb;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f3f2ef;
+  --color-ink: #0b0b0b;
+  --color-ink-secondary: #52514e;
+  --color-ink-muted: #6f6d68;
+  --color-ink-inverse: #ffffff;
+  --color-border: rgba(11, 11, 11, 0.1);
+  --color-border-strong: rgba(11, 11, 11, 0.18);
+  --color-gridline: #e1e0d9;
+  --color-baseline: #c3c2b7;
+  --color-wash: rgba(11, 11, 11, 0.04);
+  --color-focus: #2a78d6;
+  --color-backdrop: rgba(11, 11, 11, 0.32);
+
+  /* data */
+  --color-series-1: #2a78d6;
+  --color-series-1-soft: #cde2fb;
+  --color-selected: rgba(42, 120, 214, 0.08);
+
+  /* status (fixed, never themed; always paired with an icon and a label) */
+  --color-good: #0ca30c;
+  --color-good-ink: #006300;
+  --color-warning: #fab219;
+  --color-warning-ink: #7a5200;
+  --color-serious: #ec835a;
+  --color-serious-ink: #8f3a17;
+  --color-critical: #d03b3b;
+  --color-critical-ink: #a32424;
+  --color-neutral: #898781;
+
+  /* action */
+  --color-primary: #0b0b0b;
+  --color-primary-ink: #ffffff;
+  --color-danger: #c62f2f;
+  --color-danger-ink: #ffffff;
+
+  /* type */
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-hero: 2.125rem;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+
+  /* space (4px grid) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --gutter: 1rem;
+
+  /* shape & depth */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --focus-width: 2px;
+  --shadow-raised: 0 1px 2px rgba(11, 11, 11, 0.06), 0 8px 24px rgba(11, 11, 11, 0.08);
+
+  /* layout */
+  --page-max: 82rem;
+  --panel-min: 20rem;
+  --kpi-min: 9.5rem;
+  --dialog-width: 28rem;
+  --toast-width: 24rem;
+  --control-height: 2rem;
+  --icon-size: 1rem;
+  --icon-size-sm: 0.875rem;
+  --list-max-height: 26rem;
+  --log-max-height: 12rem;
+  --name-col: 16rem;
+  --panel-wide: 32rem;
+  --row-lead: 7.5rem;
+  --row-main-min: 8rem;
+  --size-full: 100%;
+  --size-shrink: 1%;
+  --sr-size: 1px;
+  --popover-gap: 6;
+  --popover-max-height: 22rem;
+  --popover-max-width: 22rem;
+  --checkbox-size: 1rem;
+  --checkbox-mark: 2px;
+  --icon-button-size: 1.75rem;
+  --table-max-height: 70vh;
+  --drawer-width: 32rem;
+
+  /* charts (read by charts.js through tokenNumber()) */
+  --chart-height: 264;
+  --chart-pad-top: 12;
+  --chart-pad-right: 4;
+  --chart-pad-bottom: 24;
+  --chart-pad-left: 28;
+  --chart-bar-gap: 2;
+  --chart-bar-radius: 4;
+  --chart-bar-max: 28;
+  --chart-ticks: 4;
+  --chart-x-labels: 6;
+  --chart-tick-gap: 6;
+  --chart-dim-opacity: 0.45;
+  --ranked-bar-height: 8px;
+  --tooltip-offset: 12;
+
+  /* misc */
+  --icon-stroke: 2;
+  --icon-stroke-strong: 2.5;
+  --chart-line: 1;
+  --opacity-disabled: 0.5;
+  --opacity-hover: 0.86;
+  --z-sticky: 2;
+  --z-bulkbar: 20;
+  --z-drawer: 25;
+  --z-tooltip: 30;
+  --z-popover: 35;
+  --z-toast: 40;
+
+  /* motion */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --color-page: #0d0d0d;
+    --color-surface: #1a1a19;
+    --color-surface-raised: #222220;
+    --color-surface-sunken: #141413;
+    --color-ink: #f0efec;
+    --color-ink-secondary: #c3c2b7;
+    --color-ink-muted: #9a988f;
+    --color-ink-inverse: #0b0b0b;
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-strong: rgba(255, 255, 255, 0.18);
+    --color-gridline: #2c2c2a;
+    --color-baseline: #383835;
+    --color-wash: rgba(255, 255, 255, 0.05);
+    --color-focus: #3987e5;
+    --color-backdrop: rgba(0, 0, 0, 0.5);
+    --color-series-1: #3987e5;
+    --color-series-1-soft: #184f95;
+    --color-selected: rgba(57, 135, 229, 0.16);
+    --color-good-ink: #0ca30c;
+    --color-warning-ink: #fab219;
+    --color-serious-ink: #ec835a;
+    --color-critical-ink: #e66767;
+    --color-primary: #f0efec;
+    --color-primary-ink: #0b0b0b;
+    --color-danger: #e66767;
+    --color-danger-ink: #0b0b0b;
+    --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-page: #0d0d0d;
+  --color-surface: #1a1a19;
+  --color-surface-raised: #222220;
+  --color-surface-sunken: #141413;
+  --color-ink: #f0efec;
+  --color-ink-secondary: #c3c2b7;
+  --color-ink-muted: #9a988f;
+  --color-ink-inverse: #0b0b0b;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-gridline: #2c2c2a;
+  --color-baseline: #383835;
+  --color-wash: rgba(255, 255, 255, 0.05);
+  --color-focus: #3987e5;
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+  --color-series-1: #3987e5;
+  --color-series-1-soft: #184f95;
+  --color-selected: rgba(57, 135, 229, 0.16);
+  --color-good-ink: #0ca30c;
+  --color-warning-ink: #fab219;
+  --color-serious-ink: #ec835a;
+  --color-critical-ink: #e66767;
+  --color-primary: #f0efec;
+  --color-primary-ink: #0b0b0b;
+  --color-danger: #e66767;
+  --color-danger-ink: #0b0b0b;
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
