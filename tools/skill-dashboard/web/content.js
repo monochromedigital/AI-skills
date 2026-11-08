@@ -3,14 +3,14 @@
 // The table, menus, bulk editing, groups and detail panel live in copy-table.js.
 
 import { COST_COPY } from "./copy-cost.js";
+import { OVERVIEW_COPY } from "./copy-overview.js";
 import { TABLE_COPY } from "./copy-table.js";
 
 export const COPY = {
   ...TABLE_COPY,
   ...COST_COPY,
+  ...OVERVIEW_COPY,
   page: {
-    title: "Skills",
-    lede: "Every skill on this Mac, how often Claude reaches for it, and what needs attention.",
     synced: "Synced {when}",
     snapshot: "Snapshot from {when} · read-only, refreshed daily",
     machine: "Mac",
@@ -18,7 +18,7 @@ export const COPY = {
     checkUpdates: "Check for updates",
     loading: "Reading your sessions…",
     loadFailed: "Couldn't load the dashboard: {error}",
-    coverage: "Counting Claude Code sessions on this Mac since {since} ({transcripts} sessions read). Cloud sessions and claude.ai chats run elsewhere and aren't counted.",
+    coverage: "Counting Claude Code sessions on this Mac since {since} ({transcripts} sessions read), plus cloud sessions once they report here (see the README). Claude.ai chats aren't stored anywhere this can read.",
     remoteOff: "GitHub update checks are off (updates.checkRemote in config.json).",
     remoteFailed: "Couldn't reach GitHub for {count} marketplace(s); plugin checks used the local copy.",
   },

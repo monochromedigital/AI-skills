@@ -5,7 +5,7 @@
 import { COPY, fill } from "../../content.js";
 import { DailyBars, RankedBars } from "../../charts.js";
 import { Dropdown } from "../../controls.js";
-import { compact, day, decimal, full, localDay, money, month, number } from "../../format.js";
+import { compact, day, decimal, full, localDay, money, month, number, percent } from "../../format.js";
 import { EmptyState, h, ListRow, Panel, SectionHead, Text } from "../../ui.js";
 
 const usd = (report) => (value) => money(value, report.cost.currency);
@@ -66,7 +66,7 @@ function ProjectsPanel(report, p, onPick) {
 function SessionsPanel(report, p) {
   const fmt = usd(report);
   const rows = p.sessions.map((s) => ListRow({
-    title: s.title ?? COPY.cost.sessions.untitled,
+    title: s.title ?? (s.cloud ? COPY.cost.sessions.cloud : COPY.cost.sessions.untitled),
     meta: fill(COPY.cost.sessions.meta, { project: s.project ?? COPY.table.never, replies: number(s.replies), tokens: compact(s.tokens) }),
     trail: h("span", { class: "money", title: full(s.lastUsed) }, fmt(s.cost)),
   }));
@@ -79,11 +79,10 @@ function SessionsPanel(report, p) {
 function KindsPanel(report, p) {
   const fmt = usd(report);
   const total = Object.values(p.byKind).reduce((a, b) => a + b, 0) || 1;
-  const share = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 });
   const name = (kind) => COPY.cost.kinds.labels[kind] ?? kind;
   const items = Object.entries(p.byKind).sort((a, b) => b[1] - a[1]).map(([kind, value]) => ({
     id: kind, label: name(kind), value, valueText: fmt(value),
-    tooltip: [name(kind), fill(COPY.cost.kinds.tooltip, { cost: fmt(value), share: share.format(value / total) })],
+    tooltip: [name(kind), fill(COPY.cost.kinds.tooltip, { cost: fmt(value), share: percent(value / total) })],
   }));
   const unpriced = Object.entries(report.cost.unpriced);
   return Panel({
@@ -93,16 +92,6 @@ function KindsPanel(report, p) {
       unpriced.length ? Text({ tone: "muted", size: "xs", as: "p", text: fill(COPY.cost.unpriced, {
         count: number(unpriced.reduce((a, [, n]) => a + n, 0)), models: unpriced.map(([m]) => m).join(", ") }) }) : null],
   });
-}
-
-/** The KPI tile for the top row: the rolling last few days, whatever period is picked below. */
-export function costTile(report) {
-  const c = report.cost;
-  return {
-    label: fill(COPY.cost.kpi.label, { days: report.windows.recentDays }),
-    value: money(c.totals.recent, c.currency),
-    sub: fill(COPY.cost.kpi.sub, { total: money(c.totals.all, c.currency), since: report.coverage.since ? day(report.coverage.since) : "" }),
-  };
 }
 
 /** The heading with its period picker, then both rows of panels for that period. */

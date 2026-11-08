@@ -4,7 +4,6 @@ import { COPY, fill } from "../../content.js";
 import { DailyBars, RankedBars } from "../../charts.js";
 import { day, localDay, number } from "../../format.js";
 import { EmptyState, h, Panel, StatTile } from "../../ui.js";
-import { costTile } from "./cost.js";
 import { when } from "./status.js";
 
 export function KpiRow(report) {
@@ -23,7 +22,6 @@ export function KpiRow(report) {
       sub: report.coverage.since ? fill(COPY.kpi.total.sub, { since: day(report.coverage.since) }) : null }),
     StatTile({ label: COPY.kpi.updates.label, value: number(k.updates), tone: k.updates ? "warning" : null,
       sub: k.updates ? COPY.kpi.updates.subSome : COPY.kpi.updates.subNone }),
-    report.cost ? StatTile(costTile(report)) : null,
     StatTile({ label: COPY.kpi.mcp.label, value: report.mcp ? number(k.mcpTotal) : COPY.table.never, sub: mcpSub }));
 }
 

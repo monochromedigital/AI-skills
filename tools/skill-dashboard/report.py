@@ -18,7 +18,7 @@ from pathlib import Path, PurePath
 import groups
 import mcp
 from actions import available_actions, trash_entries
-from ledger import read_events
+from ledger import ledger_rows
 from cost import build_cost, token_projects
 from usage import project_names, projects_summary, skill_sessions
 
@@ -87,10 +87,11 @@ def build_report(cfg, records, meta, sync_result):
     rows = {r["id"]: r for r in records}
 
     events, model_names = [], set()
-    for event in read_events(cfg["paths"]["events"]):
+    logged = ledger_rows(cfg, "events")
+    for event in logged:
         if event.get("via") == "model":
             model_names.add(event["skill"])
-    for event in read_events(cfg["paths"]["events"]):
+    for event in logged:
         skill_id = resolve(event["skill"])
         if not skill_id:
             if event.get("via") != "model" and event["skill"] not in model_names:

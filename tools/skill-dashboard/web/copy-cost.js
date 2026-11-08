@@ -2,7 +2,6 @@
 
 export const COST_COPY = {
   cost: {
-    kpi: { label: "API cost, last {days} days", sub: "{total} since {since}" },
     head: {
       title: "Token cost",
       period: "Period",
@@ -17,7 +16,7 @@ export const COST_COPY = {
     projects: { title: "Cost by project", caption: "{period} · click a project to see its skills", tooltip: "{cost} · {tokens} tokens · {sessions} sessions", empty: "No project costs in this period." },
     sessions: {
       title: "Most expensive sessions", caption: "{period}, top {count}",
-      meta: "{project} · {replies} replies · {tokens} tokens", untitled: "Untitled session", empty: "No sessions in this period.",
+      meta: "{project} · {replies} replies · {tokens} tokens", untitled: "Untitled session", cloud: "Cloud session", empty: "No sessions in this period.",
     },
     kinds: {
       title: "Where the cost goes", caption: "{period}",

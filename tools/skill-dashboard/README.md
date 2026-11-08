@@ -14,6 +14,16 @@ python3 tools/skill-dashboard/server.py
 
 Then open http://127.0.0.1:4477. Python 3 standard library only; nothing to install.
 
+Two pages, switched by the tabs at the top (and the address's `#/` or `#/skills`):
+
+- **Overview**: cost first (tiles for the last 7 days, this month against your
+  plan, all time and cloud sessions, then the Period picker and its panels),
+  then a skills snapshot (counts, anything waiting, uses per day, most used)
+  with **Manage skills** to open the Skills page.
+- **Skills**: everything for managing them: counts, updates, MCP servers,
+  projects, recently added, recent activity, trash, and the full table with
+  bulk editing. Clicking a project anywhere opens this page filtered to it.
+
 ## What it counts
 
 - **Uses**: every time the model calls a skill, plus every `/skill-name` you type.
@@ -104,6 +114,40 @@ cost figure, and their token rows are never uploaded to the online console.
 Skill uses there still count everywhere else on the page. Add a folder to the
 list to leave it out too.
 
+## Cloud sessions
+
+Claude Code cloud sessions (claude.ai/code, `claude --cloud`, the mobile Code
+tab) run on Anthropic's servers, so nothing about them is on this Mac. Claude
+Code can report each request it makes over OpenTelemetry, and the console
+Worker receives those reports (`cloud/src/cloud.js`): it keeps the model,
+token counts, session and time of every request, and the name of each skill
+used. Prompts and replies are not sent. The daily sync (and **Check for
+updates** on the local page) pulls the rows down with `cloud_pull.py`, so they
+show up in cost and skill counts as "Cloud sessions". Claude.ai chats can't be
+counted this way; claude.ai's Settings > Usage shows your plan limits instead.
+
+To turn it on, edit your cloud environment at claude.ai/code (any browser):
+
+1. **Environment variables**: paste the lines in
+   `~/.claude/skill-usage/cloud-environment.env` (made for you, owner-only).
+   They switch on the reporting and carry the cloud key.
+2. **Network access**: choose **Custom**, add
+   `monochrome-console.monochrome-digital.workers.dev`, and tick **Also include
+   default list of common package managers** so sessions keep working as before.
+
+It counts from then on; earlier cloud sessions can't be recovered. Do this only
+on the environment you use for your own work: an environment used for Crackwits
+stays uncounted. The reports don't say which repository a session worked on,
+so cloud cost appears per session and day, under "Cloud sessions".
+
+**The cloud key** (`cloudIngestToken` in `secrets.json`, `CLOUD_INGEST_TOKEN`
+on the Worker) can only add cloud rows; it can't read anything. Anthropic's
+docs advise against credentials in environment variables because anyone using
+the environment can read them; this environment is yours alone, and the
+alternative (organization-managed settings) needs a Team or Enterprise plan.
+To replace the key: make a new one, `npx wrangler secret put CLOUD_INGEST_TOKEN`
+in `cloud/`, and paste the new lines into the environment.
+
 ## The online console: https://console.monochrome.digital
 
 A read-only copy of the dashboard on Cloudflare (account "Monochrome"), built
@@ -184,6 +228,8 @@ written by `ledger.py` from Claude Code's own transcripts:
 |---|---|
 | `events.jsonl` | One line per skill use: skill, time, project, session, how it was called |
 | `tokens.jsonl` | One line per Claude reply: model, input/output/cache tokens, project, session (for the cost view) |
+| `cloud-tokens.jsonl`, `cloud-events.jsonl` | Cloud-session requests and skill uses pulled from the console (never uploaded again) |
+| `cloud-environment.env` | The lines to paste into your cloud environment (owner-only; holds the cloud key) |
 | `sessions.json` | Session titles (yours, else the generated one) |
 | `seen.json` | The date each skill was first seen ("Recently added") |
 | `groups.json` | Your own groups and group moves |
@@ -236,6 +282,8 @@ days that happened while the page was never opened.
 | `server.py` | Local server, security checks, background jobs |
 | `export.py` | Builds the read-only snapshot and the page without data |
 | `cloud_sync.py` | Sends new rows and the snapshot to the online console |
+| `cloud_pull.py` | Pulls cloud-session rows down from the console |
+| `web/pages/` | The two pages: `overview.js` and `skills.js` |
 | `build_site.py` | Writes the page into `cloud/public` for deploys |
 | `cloud/` | The Cloudflare Worker, its config and database migrations |
 | `web/` | The page: `tokens.css` → `ui.js`, `popover.js`, `controls.js` (dropdowns, menus), `overlays.js`, `charts.js` → `features/dashboard/` → `app.js` + `handlers.js`; all text in `content.js` and `copy-table.js` |

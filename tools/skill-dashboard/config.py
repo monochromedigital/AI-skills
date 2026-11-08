@@ -32,6 +32,8 @@ def load_config():
         events=data / "events.jsonl",
         sessions=data / "sessions.json",
         tokens=data / "tokens.jsonl",
+        cloudTokens=data / "cloud-tokens.jsonl",  # pulled from the console: cloud sessions
+        cloudEvents=data / "cloud-events.jsonl",
         secrets=data / "secrets.json",
         machine=data / "machine.json",
         cloudState=data / "cloud-state.json",

@@ -35,6 +35,10 @@ body {
 .masthead { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; justify-content: space-between; }
 .masthead__title { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
 .masthead__lede { margin: var(--space-1) 0 0; color: var(--color-ink-secondary); font-size: var(--text-sm); }
+.tabs { display: flex; gap: var(--space-1); margin-bottom: var(--space-3); }
+.tabs__link { padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); color: var(--color-ink-secondary); font-size: var(--text-sm); font-weight: var(--weight-medium); text-decoration: none; }
+.tabs__link:hover { background: var(--color-wash); color: var(--color-ink); }
+.tabs__link.is-current { background: var(--color-selected); color: var(--color-ink); }
 .masthead__tools { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 
 /* ── atoms ── */

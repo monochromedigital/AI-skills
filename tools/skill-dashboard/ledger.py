@@ -134,6 +134,13 @@ def _append(path, records):
             out.write(json.dumps(record, separators=(",", ":")) + "\n")
 
 
+def ledger_rows(cfg, kind):
+    """This Mac's rows of `kind` ("events" or "tokens") plus the cloud-session rows pulled by cloud_pull.py."""
+    paths = cfg["paths"]
+    cloud = {"events": "cloudEvents", "tokens": "cloudTokens"}[kind]
+    return read_events(paths[kind]) + read_events(paths[cloud])
+
+
 def read_events(events_path):
     events = []
     try:

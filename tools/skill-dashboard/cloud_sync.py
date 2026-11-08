@@ -32,6 +32,7 @@ import urllib.error
 import urllib.request
 import uuid
 
+from cloud_pull import pull
 from config import load_config
 from cost import left_out
 from export import shorten_home, snapshot_report
@@ -86,6 +87,10 @@ def main():
         except urllib.error.HTTPError as error:  # the Worker says why in its JSON body
             raise RuntimeError(f"{kind} upload refused ({error.code}): {error.read().decode(errors='replace')[:300]}") from None
 
+    try:
+        pull(cfg, log)  # cloud-session usage first, so the snapshot includes it
+    except Exception as error:  # the Mac's own upload still matters if the pull fails
+        log(f"cloud sessions: pull failed ({error})")
     report = snapshot_report(cfg, machine, log=log)  # also syncs the local ledger first
     try:
         state = json.loads(paths["cloudState"].read_text())

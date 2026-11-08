@@ -43,6 +43,10 @@ export function openListbox(anchor, { label, options, value, onPick, searchLabel
   (search ?? list.querySelector('[aria-selected="true"]') ?? list.querySelector("[role=option]"))?.focus();
 }
 
+/** Links between pages, drawn as tabs. items: [{ href, label, current }]. */
+export const Tabs = ({ label, items }) => h("nav", { class: "tabs", "aria-label": label },
+  items.map((t) => h("a", { class: ["tabs__link", t.current && "is-current"], href: t.href, "aria-current": t.current ? "page" : null }, t.label)));
+
 /** A button that shows the current choice and opens the list. */
 export function Dropdown({ label, options, value, onChange, searchLabel, searchMin, prefix }) {
   const chosen = options.find((o) => o.value === value) ?? options[0];

@@ -1,27 +1,29 @@
-// Page layer: owns state, loads the report and lays out the panels. Clicks are
+// Page layer: owns state, loads the report and switches between the two pages
+// (pages/overview.js, pages/skills.js) by the address's #fragment. Clicks are
 // handled in handlers.js; nothing below this file talks to the server.
 
 import { fetchMachines, fetchReport } from "./api.js";
 import { COPY, fill } from "./content.js";
-import { Coverage, RecentPanel, TrashPanel } from "./features/dashboard/activity.js";
-import { McpPanel, UpdatesPanel } from "./features/dashboard/attention.js";
 import { BulkBar, planBulk } from "./features/dashboard/bulk.js";
-import { CostSection } from "./features/dashboard/cost.js";
 import { SkillDetail } from "./features/dashboard/detail.js";
-import { ProjectsPanel, RecentlyAddedPanel } from "./features/dashboard/library.js";
 import { Masthead } from "./features/dashboard/masthead.js";
 import { skillMenuItems } from "./features/dashboard/menu.js";
-import { KpiRow, TopPanel, UsagePanel } from "./features/dashboard/summary.js";
 import { rowsBetween, SkillsTable } from "./features/dashboard/table.js";
 import { createHandlers } from "./handlers.js";
+import { keepPlace } from "./keep-place.js";
 import { Drawer } from "./overlays.js";
+import { OverviewPage } from "./pages/overview.js";
+import { SkillsPage } from "./pages/skills.js";
 import { h } from "./ui.js";
+
+const ROUTES = { overview: "#/", skills: "#/skills" };
+const viewOf = () => (location.hash === ROUTES.skills ? "skills" : "overview");
 
 const app = document.getElementById("app");
 const state = {
   report: null, error: null, loading: false, mcpChecking: false, autoChecked: false, drawer: null, machines: [], machine: null,
   table: { search: "", source: "all", status: "all", usage: "all", group: "all", project: "all", groupBy: "group", sort: { key: "uses", dir: "desc" } },
-  selection: new Set(), collapsed: new Set(), lastPicked: null, costPeriod: null,
+  selection: new Set(), collapsed: new Set(), lastPicked: null, costPeriod: null, view: viewOf(),
 };
 const slots = { table: null, bulk: null };
 const act = createHandlers({ state, reload: () => load(), render: () => render() });
@@ -80,21 +82,11 @@ function Bulk() {
   });
 }
 
-/** Redraw without losing the table's scroll position or the control that had focus (matched by data-focus-key). */
-function keepPlace(redraw) {
-  const scroll = slots.table?.querySelector(".table-wrap")?.scrollTop ?? 0;
-  const focusKey = app.contains(document.activeElement) ? document.activeElement.dataset.focusKey : null;
-  redraw();
-  const wrap = slots.table?.querySelector(".table-wrap");
-  if (wrap) wrap.scrollTop = scroll;
-  const again = focusKey && [...app.querySelectorAll("[data-focus-key]")].find((el) => el.dataset.focusKey === focusKey);
-  if (!again) return;
-  again.focus();
-  if (again.setSelectionRange) again.setSelectionRange(again.value.length, again.value.length);
-}
+/** Redraw without losing the table's scroll position or the control that had focus. */
+const redraw = (fn) => keepPlace(app, () => slots.table?.querySelector(".table-wrap"), fn);
 
 /** Re-draw only the table and bulk bar. */
-const refreshTable = () => keepPlace(() => {
+const refreshTable = () => redraw(() => {
   const table = Table();
   slots.table.replaceWith(table);
   slots.table = table;
@@ -103,8 +95,20 @@ const refreshTable = () => keepPlace(() => {
   slots.bulk = bulk;
 });
 
+/** Switch page now (history entry included); the hashchange listener covers tabs, back and forward. */
+function goTo(view) {
+  if (state.view === view) return;
+  history.pushState(null, "", ROUTES[view]);
+  state.view = view;
+  render();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", () => { state.view = viewOf(); render(); window.scrollTo(0, 0); });
+
+/** Show the skills used in one project: the Skills page, its table filtered to that folder. */
 function showProject(path) {
-  tableHandlers.setTable({ project: path, search: "", group: "all" });
+  Object.assign(state.table, { project: path, search: "", group: "all" });
+  state.view === "skills" ? refreshTable() : goTo("skills");
   slots.table.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -120,11 +124,12 @@ function openDetail(skill) {
 const costHandlers = { onPick: (path) => showProject(path), onPeriod: (id) => { state.costPeriod = id; render(); } };
 
 // ── layout ──
-const Header = () => Masthead({ report: state.report, loading: state.loading, machines: state.machines,
+const Header = () => Masthead({ view: state.view, report: state.report, loading: state.loading, machines: state.machines,
+  nav: Object.entries(ROUTES).map(([view, href]) => ({ href, label: COPY.nav[view], current: view === state.view })),
   onMachine: (id) => { state.machine = id; load(); },
   onRefresh: () => load(), onCheckUpdates: () => load({ refresh: true }) });
 
-const render = () => keepPlace(() => {
+const render = () => redraw(() => {
   const r = state.report;
   if (!r) {
     app.replaceChildren(Header(), h("p", { class: "empty" }, state.error ? fill(COPY.page.loadFailed, { error: state.error }) : COPY.page.loading));
@@ -132,16 +137,11 @@ const render = () => keepPlace(() => {
   }
   slots.table = Table();
   slots.bulk = Bulk();
-  app.replaceChildren(
-    Header(),
-    KpiRow(r),
-    h("div", { class: "band" }, UsagePanel(r), TopPanel(r, (item) => openDetail(r.skills.find((s) => s.id === item.id)))),
-    ...(r.cost ? CostSection(r, state.costPeriod, costHandlers) : []),
-    h("div", { class: "band" }, UpdatesPanel(r, act.runAction), McpPanel(r, act.runAction, state.mcpChecking)),
-    h("div", { class: "band" }, ProjectsPanel(r, showProject), RecentlyAddedPanel(r, openDetail), RecentPanel(r), TrashPanel(r, act.runAction)),
-    slots.table,
-    Coverage(r),
-    slots.bulk);
+  const page = state.view === "skills"
+    ? SkillsPage(r, { table: slots.table, bulk: slots.bulk, onAction: act.runAction, mcpChecking: state.mcpChecking, showProject, openDetail })
+    : OverviewPage(r, { costPeriod: state.costPeriod, costHandlers, onManage: () => goTo("skills"),
+      onSkill: (item) => openDetail(r.skills.find((s) => s.id === item.id)) });
+  app.replaceChildren(Header(), ...page);
 });
 
 load();

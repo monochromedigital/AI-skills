@@ -17,13 +17,15 @@ Folders in `costLeaveOut` (and everything under them) are left out entirely:
 work someone else pays for. Skill uses there still count elsewhere.
 """
 
-import json
 import os
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
+from ledger import ledger_rows
+
 TOKEN_KINDS = ("input", "output", "cacheWrite", "cacheRead")
 ALL = "all"  # the all-time period's id; months use "YYYY-MM"
+CLOUD = "cloud"  # entrypoint on rows pulled from cloud sessions (cloud_pull.py)
 
 
 def _when(ts):
@@ -70,18 +72,7 @@ def _add(bucket, cost, tokens, when, session):
 
 def token_projects(cfg):
     """Every project folder that has token usage, so names can be made once for all sections."""
-    paths = set()
-    try:
-        with open(cfg["paths"]["tokens"], encoding="utf-8") as f:
-            for line in f:
-                try:
-                    paths.add(json.loads(line).get("project"))
-                except ValueError:
-                    continue
-    except OSError:
-        pass
-    paths.discard(None)
-    return paths
+    return {row.get("project") for row in ledger_rows(cfg, "tokens")} - {None}
 
 
 class _Period:
@@ -89,6 +80,7 @@ class _Period:
 
     def __init__(self):
         self.total = _bucket()
+        self.sources = defaultdict(float)  # "mac" or "cloud"
         self.kinds = dict.fromkeys(TOKEN_KINDS, 0.0)
         self.series = defaultdict(float)
         self.projects, self.sessions, self.models = defaultdict(_bucket), defaultdict(_bucket), defaultdict(_bucket)
@@ -99,10 +91,12 @@ class _Period:
         for kind, value in split.items():
             self.kinds[kind] += value
         self.series[slot] += cost
+        self.sources["cloud" if row.get("entrypoint") == CLOUD else "mac"] += cost
         _add(self.projects[row.get("project") or ""], cost, tokens, when, session)
         if session:
             _add(self.sessions[session], cost, tokens, when, session)
             self.sessions[session].setdefault("project", row.get("project"))
+            self.sessions[session].setdefault("cloud", row.get("entrypoint") == CLOUD)
         _add(self.models[model], cost, tokens, when, session)
 
 
@@ -136,15 +130,7 @@ def build_cost(cfg, names, titles, now):
     first_day = None
     skip = left_out(cfg)
 
-    try:
-        lines = cfg["paths"]["tokens"].read_text(encoding="utf-8").splitlines()
-    except OSError:
-        lines = []
-    for line in lines:
-        try:
-            row = json.loads(line)
-        except ValueError:
-            continue
+    for row in ledger_rows(cfg, "tokens"):  # this Mac's replies, then cloud sessions'
         when = _when(row.get("ts"))
         model = row.get("model") or "unknown"
         if not when or model in pricing["free"] or skip(row.get("project")):
@@ -181,7 +167,7 @@ def build_cost(cfg, names, titles, now):
         if kind == "session":
             t = titles.get(key) or {}
             return {"id": key, "title": t.get("customTitle") or t.get("aiTitle"),
-                    "project": names.get(bucket.get("project"), bucket.get("project"))}
+                    "project": names.get(bucket.get("project"), bucket.get("project")), "cloud": bucket.get("cloud", False)}
         return {"model": key}
 
     def period(pid, slots):
@@ -190,6 +176,7 @@ def build_cost(cfg, names, titles, now):
             "id": pid, "kind": "all" if pid == ALL else "month",
             "cost": round(p.total["cost"], 4), "tokens": p.total["tokens"], "replies": p.total["replies"],
             "sessionCount": len(p.total["sessions"]),
+            "bySource": {"mac": round(p.sources["mac"], 4), "cloud": round(p.sources["cloud"], 4)},
             "byKind": {k: round(v, 4) for k, v in p.kinds.items()},
             "series": [{"date": slot, "cost": round(p.series.get(slot, 0.0), 4)} for slot in slots],
             "projects": rows(p.projects, kind="project"),
@@ -201,7 +188,7 @@ def build_cost(cfg, names, titles, now):
     today = now.astimezone().date()
     leave_out = cfg.get("costLeaveOut", {})
     return {
-        "currency": pricing["currency"], "asOf": pricing["asOf"],
+        "currency": pricing["currency"], "asOf": pricing["asOf"], "thisMonth": this_month,
         "plan": {"monthlyFee": cfg["plan"]["monthlyFee"]} if cfg.get("plan", {}).get("monthlyFee") else None,
         "totals": {k: round(v, 4) for k, v in totals.items()},
         "periods": [period(m, [d.isoformat() for d in _month_days(m, first_day, today)]) for m in months]

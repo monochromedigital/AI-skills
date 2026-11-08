@@ -34,6 +34,7 @@ from actions import ACTIONS, ActionError
 from config import load_config
 from inventory import build_inventory
 from ledger import sync
+from cloud_pull import pull as pull_cloud
 from report import build_report
 
 CFG = load_config()
@@ -140,6 +141,11 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == "/api/report":
             refresh = parse_qs(url.query).get("refresh") == ["1"]
             result = sync(CFG)
+            if refresh:  # "Check for updates" also fetches cloud-session usage
+                try:
+                    pull_cloud(CFG, log=lambda m: None)
+                except Exception:
+                    pass  # offline or no key: show what's already here
             records, meta = inventory(force_remote=refresh)
             return self._send(HTTPStatus.OK, build_report(CFG, records, meta, result))
         if url.path.startswith("/api/jobs/"):

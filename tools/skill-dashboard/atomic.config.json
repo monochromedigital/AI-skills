@@ -5,7 +5,8 @@
       "web/tokens.css",
       "web/content.js",
       "web/copy-table.js",
-      "web/copy-cost.js"
+      "web/copy-cost.js",
+      "web/copy-overview.js"
     ],
     "ui": [
       "web/ui.js",
@@ -23,7 +24,9 @@
       "web/app.js",
       "web/handlers.js",
       "web/api.js",
-      "web/index.html"
+      "web/index.html",
+      "web/pages/**",
+      "web/keep-place.js"
     ]
   },
   "maxComponentLines": 150,
