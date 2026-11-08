@@ -2,10 +2,12 @@
 // never carry their own. Values in {braces} are filled by fill().
 // The table, menus, bulk editing, groups and detail panel live in copy-table.js.
 
+import { COST_COPY } from "./copy-cost.js";
 import { TABLE_COPY } from "./copy-table.js";
 
 export const COPY = {
   ...TABLE_COPY,
+  ...COST_COPY,
   page: {
     title: "Skills",
     lede: "Every skill on this Mac, how often Claude reaches for it, and what needs attention.",

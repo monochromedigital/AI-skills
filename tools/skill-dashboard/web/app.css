@@ -126,6 +126,7 @@ p.text { margin: var(--space-3) 0 0; }
 .stat__value { margin-top: var(--space-1); font-size: var(--text-hero); font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
 .stat__sub { margin-top: var(--space-1); color: var(--color-ink-muted); font-size: var(--text-xs); }
 .stat--warning .stat__value { color: var(--color-warning-ink); }
+.money { font-size: var(--text-sm); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ── panels ── */
 .band { display: flex; flex-wrap: wrap; gap: var(--space-4); }

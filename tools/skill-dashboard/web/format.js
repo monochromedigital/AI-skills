@@ -35,6 +35,23 @@ export const day = (value) => (value ? dayFormat.format(toDate(value)) : "");
 export const full = (value) => (value ? fullFormat.format(toDate(value)) : "");
 export const number = (value) => numberFormat.format(value ?? 0);
 
+// Whole currency units once amounts reach the threshold; cents below it.
+const CENTS_BELOW = 100;
+const moneyFormats = new Map();
+export function money(value, currency) {
+  const amount = Math.abs(value ?? 0);
+  const digits = amount >= CENTS_BELOW || Number.isInteger(amount) ? 0 : 2;
+  const key = `${currency}:${digits}`;
+  if (!moneyFormats.has(key)) {
+    moneyFormats.set(key, new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: digits, maximumFractionDigits: digits }));
+  }
+  return moneyFormats.get(key).format(value ?? 0);
+}
+
+/** Large token counts as "1.2M" / "340K". */
+const compactFormat = new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 });
+export const compact = (value) => compactFormat.format(value ?? 0);
+
 // A calendar date from the server ("2026-11-08") is a local day, not UTC midnight.
 export function localDay(isoDate) {
   const [y, m, d] = isoDate.split("-").map(Number);

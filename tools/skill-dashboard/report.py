@@ -19,6 +19,7 @@ import groups
 import mcp
 from actions import available_actions, trash_entries
 from ledger import read_events
+from cost import build_cost, token_projects
 from usage import project_names, projects_summary, skill_sessions
 
 
@@ -133,7 +134,7 @@ def build_report(cfg, records, meta, sync_result):
         if local_day >= chart_from:
             daily[local_day] += 1
 
-    names = project_names(e.get("project") for _, _, e in events)
+    names = project_names({e.get("project") for _, _, e in events} | token_projects(cfg))
     titles = _read_json(cfg["paths"]["sessions"])
     group_of = groups.resolver(cfg)
     per_skill = cfg["ui"]["sessionsPerSkill"]
@@ -192,6 +193,7 @@ def build_report(cfg, records, meta, sync_result):
                    for when, skill_id, event in recent],
         "skills": skills,
         "projects": projects_summary(events, names, lambda sid: rows[sid]["name"]),
+        "cost": build_cost(cfg, names, titles, now),
         "groups": _group_counts(groups.all_groups(cfg), skills),
         "updates": updates,
         "mcp": mcp_status,

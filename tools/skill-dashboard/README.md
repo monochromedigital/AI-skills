@@ -97,8 +97,11 @@ from three parts in `cloud/`:
     (the `ACCESS_*` vars in `wrangler.jsonc`), every data request is refused.
   - `monochrome-console.monochrome-digital.workers.dev` only accepts uploads
     (`POST /api/ingest/<kind>`) carrying the upload key. Nothing is readable there.
-- **Cloudflare Access** in front of `console.monochrome.digital`: email
-  one-time-code sign-in for the addresses you allow.
+- **Cloudflare Access** in front of `console.monochrome.digital`. Sign-in is
+  either your Cloudflare account or a one-time code emailed to you, but only
+  addresses in the policy **Monochrome console - Johnny only** get in. To let a
+  teammate in, add their email to that policy (Zero Trust → Access controls →
+  Policies); the emailed code is how they sign in.
 
 Day to day:
 - `python3 tools/skill-dashboard/cloud_sync.py` sends new rows and a fresh
@@ -108,10 +111,46 @@ Day to day:
 - `cd tools/skill-dashboard/cloud && npm run deploy` publishes page or Worker
   changes (it rebuilds `cloud/public` from `web/` first). `npm run migrate`
   applies new database migrations.
-- Each Mac gets its own id (`~/.claude/skill-usage/machine.json`). To add your
-  other laptop: clone the repo, copy `secrets.json` across, run `cloud_sync.py`.
 - The upload key is in `~/.claude/skill-usage/secrets.json` (owner-only) and
   set on the Worker as the `INGEST_TOKEN` secret. It is never in the repo.
+
+### Database write limit
+
+D1's free plan allows 100,000 written rows a day (reset at midnight UTC), and
+each index on a table adds one more write per row. A normal day is a few
+thousand. The risk is a Mac's first upload, which sends its whole history: if
+it hits the limit, the sync stops with "exceeded D1's free tier daily row
+write limit" and carries on from where it stopped the next day
+(`cloud-state.json` records each batch sent). Session titles are only sent
+when new or renamed, for the same reason.
+
+`migrations/0002_fewer_token_indexes.sql` drops three indexes nothing reads.
+Run `npm run migrate` in `cloud/` once if it hasn't been applied (it couldn't
+be on 8 Nov because that day's limit was already used up).
+
+### Add your other laptop
+
+Each Mac uploads under its own id and name (`~/.claude/skill-usage/machine.json`,
+created on the first sync). On the other Mac:
+
+1. **Get the code.** Clone this repo (the dashboard lives on the
+   `skill-dashboard` branch until it's merged), or copy the
+   `tools/skill-dashboard` folder across. It needs only `python3` and Claude
+   Code; `cloud/` and `npm` are only for deploying, which one Mac is enough for.
+2. **Copy the upload key.** AirDrop `~/.claude/skill-usage/secrets.json` from
+   this Mac into the same folder there, then lock it to your user:
+   `chmod 600 ~/.claude/skill-usage/secrets.json`. Don't send it by email or chat.
+3. **First sync.** `python3 tools/skill-dashboard/cloud_sync.py`. It reads that
+   Mac's transcripts and uploads its history; a long history may take two days
+   because of the write limit above.
+4. **Daily sync.** In the Claude app there: Scheduled → New task, every day,
+   with the prompt `cd "<repo>/tools/skill-dashboard" && python3 cloud_sync.py`.
+5. **Optional:** the session-start hook below, so nothing is lost to the
+   30-day transcript cleanup.
+
+The console shows one Mac's snapshot at a time: the one that synced most
+recently. All Macs' rows are in the database (`/api/machines` lists them), but
+the page doesn't have a Mac switcher yet.
 
 ## Where the data lives
 
@@ -137,8 +176,9 @@ see above), which is what lets two Macs, and later teammates, share one history.
 
 ## Keep the history while the page is closed (optional)
 
-Add this entry to the `SessionStart` list in `~/.claude/settings.json`. It
-copies new uses in the background each time a session starts:
+Add this entry to the `SessionStart` list in `~/.claude/settings.json` (done
+on the main Mac on 8 Nov 2026). It copies new uses in the background each time
+a session starts:
 
 ```json
 {

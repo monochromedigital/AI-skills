@@ -23,7 +23,7 @@ function roundedTop(x, y, w, height, radius) {
 }
 
 /** Vertical bars, one per item: [{ value, ... }]. */
-export function DailyBars({ data, valueOf, tooltipFor, xLabelFor, ariaLabel }) {
+export function DailyBars({ data, valueOf, tooltipFor, xLabelFor, ariaLabel, tickFormat = String }) {
   const root = h("div", { class: "chart", role: "img", "aria-label": ariaLabel });
 
   function draw() {
@@ -46,7 +46,7 @@ export function DailyBars({ data, valueOf, tooltipFor, xLabelFor, ariaLabel }) {
     for (let v = 0; v <= top; v += step) {
       chart.append(
         svg("line", { class: v === 0 ? "chart__baseline" : "chart__grid", x1: pl, x2: width - pr, y1: y(v), y2: y(v) }),
-        svg("text", { class: "chart__tick", x: pl - tickGap, y: y(v), "text-anchor": "end", "dominant-baseline": "middle" }, v),
+        svg("text", { class: "chart__tick", x: pl - tickGap, y: y(v), "text-anchor": "end", "dominant-baseline": "middle" }, tickFormat(v)),
       );
     }
 

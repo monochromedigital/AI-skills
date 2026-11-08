@@ -6,15 +6,16 @@ import { COPY, fill } from "./content.js";
 import { Coverage, RecentPanel, TrashPanel } from "./features/dashboard/activity.js";
 import { McpPanel, UpdatesPanel } from "./features/dashboard/attention.js";
 import { BulkBar, planBulk } from "./features/dashboard/bulk.js";
+import { CostBands } from "./features/dashboard/cost.js";
 import { SkillDetail } from "./features/dashboard/detail.js";
 import { ProjectsPanel, RecentlyAddedPanel } from "./features/dashboard/library.js";
+import { Masthead } from "./features/dashboard/masthead.js";
 import { skillMenuItems } from "./features/dashboard/menu.js";
 import { KpiRow, TopPanel, UsagePanel } from "./features/dashboard/summary.js";
 import { rowsBetween, SkillsTable } from "./features/dashboard/table.js";
-import { relative } from "./format.js";
 import { createHandlers } from "./handlers.js";
 import { Drawer } from "./overlays.js";
-import { Button, h, Text } from "./ui.js";
+import { h } from "./ui.js";
 
 const app = document.getElementById("app");
 const state = {
@@ -113,17 +114,8 @@ function openDetail(skill) {
 }
 
 // ── layout ──
-function Header() {
-  const r = state.report;
-  const when = r?.coverage.lastSync ? relative(r.coverage.lastSync, COPY.time) : null;
-  const synced = when ? fill(r.readOnly ? COPY.page.snapshot : COPY.page.synced, { when }) : null;
-  return h("header", { class: "masthead" },
-    h("div", {}, h("h1", { class: "masthead__title" }, COPY.page.title), h("p", { class: "masthead__lede" }, COPY.page.lede)),
-    h("div", { class: "masthead__tools" },
-      synced ? Text({ text: synced, tone: "muted" }) : null,
-      Button({ label: COPY.page.refresh, icon: "refresh", disabled: state.loading, onClick: () => load() }),
-      r?.readOnly ? null : Button({ label: COPY.page.checkUpdates, variant: "primary", disabled: state.loading, onClick: () => load({ refresh: true }) })));
-}
+const Header = () => Masthead({ report: state.report, loading: state.loading,
+  onRefresh: () => load(), onCheckUpdates: () => load({ refresh: true }) });
 
 function render() {
   const r = state.report;
@@ -138,6 +130,7 @@ function render() {
     Header(),
     KpiRow(r),
     h("div", { class: "band" }, UsagePanel(r), TopPanel(r, (item) => openDetail(r.skills.find((s) => s.id === item.id)))),
+    ...(r.cost ? CostBands(r, showProject) : []),
     h("div", { class: "band" }, UpdatesPanel(r, act.runAction), McpPanel(r, act.runAction, state.mcpChecking)),
     h("div", { class: "band" }, ProjectsPanel(r, showProject), RecentlyAddedPanel(r, openDetail), RecentPanel(r), TrashPanel(r, act.runAction)),
     slots.table,

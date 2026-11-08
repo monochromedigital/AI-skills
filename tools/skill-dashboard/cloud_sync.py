@@ -28,6 +28,7 @@ import platform
 import subprocess
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import uuid
 
@@ -78,8 +79,11 @@ def main():
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json",
                      "X-Machine-Id": machine["id"], "X-Machine-Name": urllib.parse.quote(machine["name"]),
                      "User-Agent": "monochrome-console-sync"})
-        with urllib.request.urlopen(request, timeout=cloud["timeoutSeconds"], context=context) as response:
-            return json.loads(response.read())["written"]
+        try:
+            with urllib.request.urlopen(request, timeout=cloud["timeoutSeconds"], context=context) as response:
+                return json.loads(response.read())["written"]
+        except urllib.error.HTTPError as error:  # the Worker says why in its JSON body
+            raise RuntimeError(f"{kind} upload refused ({error.code}): {error.read().decode(errors='replace')[:300]}") from None
 
     report = snapshot_report(cfg, machine, log=log)  # also syncs the local ledger first
     try:
@@ -99,12 +103,18 @@ def main():
             paths["cloudState"].write_text(json.dumps(state))
         log(f"{kind}: {len(new)} new, {written} stored")
 
+    # Only new or renamed sessions: every row written counts against the database's daily limit.
     titles = json.loads(paths["sessions"].read_text()) if paths["sessions"].exists() else {}
+    sent = state.get("sessions", {})
     sessions = [{"id": sid, "title": t.get("customTitle") or t.get("aiTitle"), "custom": int(bool(t.get("customTitle")))}
                 for sid, t in titles.items()]
-    for batch in chunks(sessions, cloud["chunkBytes"]):
+    changed = [s for s in sessions if sent.get(s["id"]) != [s["title"], s["custom"]]]
+    for batch in chunks(changed, cloud["chunkBytes"]):
         post("sessions", json.dumps(batch, separators=(",", ":")))
-    log(f"sessions: {len(sessions)} sent")
+        sent.update({s["id"]: [s["title"], s["custom"]] for s in batch})
+        state["sessions"] = sent
+        paths["cloudState"].write_text(json.dumps(state))
+    log(f"sessions: {len(changed)} new or renamed, of {len(sessions)}")
 
     post("snapshot", json.dumps(report, separators=(",", ":")))
     log(f"snapshot sent for {machine['name']} ({len(report['skills'])} skills)")

@@ -34,7 +34,8 @@ const INGEST = {
   sessions: `INSERT INTO sessions (id, machine_id, title, custom)
     SELECT json_extract(value, '$.id'), ?1, json_extract(value, '$.title'), coalesce(json_extract(value, '$.custom'), 0)
     FROM json_each(?2) WHERE true
-    ON CONFLICT (id) DO UPDATE SET title = excluded.title, custom = excluded.custom, updated_at = ${NOW}`,
+    ON CONFLICT (id) DO UPDATE SET title = excluded.title, custom = excluded.custom, updated_at = ${NOW}
+    WHERE sessions.title IS NOT excluded.title OR sessions.custom IS NOT excluded.custom`,
   snapshot: `INSERT INTO snapshots (machine_id, generated_at, report)
     SELECT ?1, json_extract(?2, '$.generatedAt'), ?2 WHERE json_valid(?2)
     ON CONFLICT (machine_id) DO UPDATE SET generated_at = excluded.generated_at, report = excluded.report`,
@@ -75,10 +76,11 @@ const b64url = (text) => Uint8Array.from(atob(text.replace(/-/g, "+").replace(/_
 const decodePart = (part) => JSON.parse(new TextDecoder().decode(b64url(part)));
 let certs = { keys: [], fetchedAt: 0 };
 const CERTS_TTL_MS = 3600000;
+const CERTS_PATH = "/cdn-cgi/access/certs";
 
-async function accessKeys(team) {
+async function accessKeys(teamUrl) {
   if (Date.now() - certs.fetchedAt > CERTS_TTL_MS) {
-    const response = await fetch(`https://${team}/cdn-cgi/access/certs`);
+    const response = await fetch(new URL(CERTS_PATH, teamUrl));
     certs = { keys: (await response.json()).keys ?? [], fetchedAt: Date.now() };
   }
   return certs.keys;
@@ -86,7 +88,7 @@ async function accessKeys(team) {
 
 /** The signed-in email, or null. Checks signature, audience, issuer and expiry. */
 async function viewer(request, env) {
-  if (!env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return null;
+  if (!env.ACCESS_TEAM_URL || !env.ACCESS_AUD) return null;
   const token = request.headers.get("cf-access-jwt-assertion");
   if (!token || token.split(".").length !== 3) return null;
   try {
@@ -94,9 +96,9 @@ async function viewer(request, env) {
     const header = decodePart(head);
     const claims = decodePart(body);
     const audiences = [].concat(claims.aud);
-    if (!audiences.includes(env.ACCESS_AUD) || claims.iss !== `https://${env.ACCESS_TEAM_DOMAIN}`) return null;
+    if (!audiences.includes(env.ACCESS_AUD) || claims.iss !== env.ACCESS_TEAM_URL) return null;
     if (!claims.exp || claims.exp * 1000 < Date.now()) return null;
-    const jwk = (await accessKeys(env.ACCESS_TEAM_DOMAIN)).find((k) => k.kid === header.kid);
+    const jwk = (await accessKeys(env.ACCESS_TEAM_URL)).find((k) => k.kid === header.kid);
     if (!jwk) return null;
     const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
     const valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64url(signature), new TextEncoder().encode(`${head}.${body}`));

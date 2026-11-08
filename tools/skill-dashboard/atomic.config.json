@@ -1,11 +1,30 @@
 {
   "root": "web",
   "layers": {
-    "tokens": ["web/tokens.css", "web/content.js", "web/copy-table.js"],
-    "ui": ["web/ui.js", "web/overlays.js", "web/popover.js", "web/controls.js", "web/charts.js", "web/format.js"],
+    "tokens": [
+      "web/tokens.css",
+      "web/content.js",
+      "web/copy-table.js",
+      "web/copy-cost.js"
+    ],
+    "ui": [
+      "web/ui.js",
+      "web/overlays.js",
+      "web/popover.js",
+      "web/controls.js",
+      "web/charts.js",
+      "web/format.js"
+    ],
     "layout": [],
-    "feature": ["web/features/*/**"],
-    "page": ["web/app.js", "web/handlers.js", "web/api.js", "web/index.html"]
+    "feature": [
+      "web/features/*/**"
+    ],
+    "page": [
+      "web/app.js",
+      "web/handlers.js",
+      "web/api.js",
+      "web/index.html"
+    ]
   },
   "maxComponentLines": 150,
   "duplicateMinLines": 4

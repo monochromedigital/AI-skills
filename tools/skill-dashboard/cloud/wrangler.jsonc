@@ -18,7 +18,7 @@
   // Cloudflare Access app "Monochrome Console" (Zero Trust team autumn-block-83f7).
   // Neither value is secret: they say which sign-ins to trust. Empty = refuse all data.
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "autumn-block-83f7.cloudflareaccess.com",
+    "ACCESS_TEAM_URL": "https://autumn-block-83f7.cloudflareaccess.com",
     "ACCESS_AUD": "4899ee68beee66a45c5f3e4fe39043748e8c24a0c3d5c578e8f2b6d713ece360"
   },
   "observability": { "enabled": true }
