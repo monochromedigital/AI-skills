@@ -46,7 +46,7 @@
   },
   "cloud": {
     "ingestUrl": "https://monochrome-console.monochrome-digital.workers.dev",
-    "dataPath": "/api/report", "machinesPath": "/api/machines",
+    "dataPath": "/api/report", "machinesPath": "/api/machines", "costRowsPath": "/api/cost-rows",
     "chunkBytes": 400000,
     "timeoutSeconds": 60
   },

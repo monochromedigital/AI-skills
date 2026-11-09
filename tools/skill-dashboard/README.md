@@ -95,17 +95,24 @@ every action needs a token that only the dashboard page receives.
 
 ## Cost
 
-The cost panels show what this Mac's Claude Code replies would cost at
-Anthropic API list prices (`pricing` in `config.json`, dated). You pay a flat
-plan fee, so read it as a way to compare projects and sessions, not a bill.
-Claude.ai chats in the browser aren't stored on the Mac, so they never appear.
+The cost panels show what your Claude Code replies (this Mac's and cloud
+sessions') would cost at Anthropic API list prices (`pricing` in
+`config.json`, dated). You pay a flat plan fee, so read it as a way to compare
+projects and sessions, not a bill. Claude.ai chats in the browser aren't
+stored anywhere this can read, so they never appear.
+
+How it's worked out: `cost.py` sums token counts per day, project, session,
+model and source; the page prices those rows with `web/cost-model.js`. The
+online console gets rows of the same shape live from its database
+(`cloud/src/cost.js`), so both price the same way, and the console's cost is
+current without this Mac: cloud sessions as they report, each Mac as of its
+last sync.
 
 The **Period** menu at the top of the section switches between months (bars
 per day) and All time (bars per month); the projects, sessions and cost
 breakdown follow it. `plan.monthlyFee` in `config.json` (now $100) is what you
 pay each month, so the heading can say how the API-price figure compares. The
-"API cost, last 7 days" tile at the top of the page always shows the rolling
-week.
+"Last 7 days" tile counts today and the six calendar days before it.
 
 `costLeaveOut` in `config.json` lists folders whose token cost is someone
 else's: now `~/Desktop/Code/CRK` (Crackwits client work, which Crackwits pays
@@ -164,9 +171,10 @@ in `cloud/`, and paste the new lines into the environment.
 A read-only copy of the dashboard on Cloudflare (account "Monochrome"), built
 from three parts in `cloud/`:
 
-- **D1 database** `monochrome-console`: skill uses, token usage per reply,
-  session titles, model prices (for the cost view) and the latest dashboard
-  snapshot per Mac. Tables are in `cloud/migrations/`.
+- **D1 database** `monochrome-console`: skill uses, token usage per reply
+  (Macs and cloud sessions), session titles and the latest dashboard snapshot
+  per Mac. Tables are in `cloud/migrations/`. The page's cost comes live from
+  here (`/api/cost-rows`); the rest of the page from the latest snapshot.
 - **Worker** `monochrome-console` (`cloud/src/worker.js`) with two addresses:
   - `console.monochrome.digital` serves the page and its data. Data is only
     served to people Cloudflare Access has signed in; until Access is set up
@@ -184,9 +192,12 @@ Day to day:
   snapshot; the Claude app's scheduled task **Monochrome console: daily sync**
   runs it every morning (or at the app's next launch). Re-sending is harmless:
   the database ignores rows it already has.
-- `cd tools/skill-dashboard/cloud && npm run deploy` publishes page or Worker
-  changes (it rebuilds `cloud/public` from `web/` first). `npm run migrate`
-  applies new database migrations.
+- **Deploys happen on their own**: Cloudflare Workers Builds watches `main` on
+  GitHub (root `tools/skill-dashboard/cloud`, build `python3 ../build_site.py`,
+  deploy `npx wrangler deploy`), so merging a pull request publishes it, from
+  a cloud session as well as from this Mac. `npm run deploy` in `cloud/` still
+  works for a manual deploy. `npm run migrate` applies new database migrations
+  and stays manual (the build's key can't change the database).
 - The upload key is in `~/.claude/skill-usage/secrets.json` (owner-only) and
   set on the Worker as the `INGEST_TOKEN` secret. It is never in the repo.
 
@@ -200,9 +211,25 @@ write limit" and carries on from where it stopped the next day
 (`cloud-state.json` records each batch sent). Session titles are only sent
 when new or renamed, for the same reason.
 
-`migrations/0002_fewer_token_indexes.sql` drops three indexes nothing reads.
-Run `npm run migrate` in `cloud/` once if it hasn't been applied (it couldn't
-be on 8 Nov because that day's limit was already used up).
+`migrations/0002_fewer_token_indexes.sql` dropped three indexes nothing read
+(applied 9 Nov 2026).
+
+### Working on the dashboard from a cloud session
+
+Open a cloud session at claude.ai/code on **monochromedigital/AI-skills**
+(the Claude GitHub App needs access to the repository). A cloud machine has no
+Claude Code history to show, so preview with made-up data:
+
+```bash
+python3 tools/skill-dashboard/server.py --sample
+```
+
+It serves `fixtures/sample-report.json` read-only at port 4477 (the
+`skill-dashboard-sample` entry in `.claude/launch.json`). The sample comes from
+`fixtures/make_sample.py`, run on this Mac: it scrambles every project,
+session, title, environment, repository and MCP server name, scales the
+numbers, and refuses to write if a real name survives. Re-run it when the
+report's shape changes. Push and merge as usual; the merge deploys.
 
 ### Add your other laptop
 
@@ -288,7 +315,10 @@ days that happened while the page was never opened.
 | `groups.py` | Group rules and your own group choices |
 | `usage.py` | Per-project and per-session breakdowns |
 | `actions.py` | The page's actions (single, bulk, groups), each re-checked against a fresh listing |
-| `cost.py` | API-equivalent cost per day, project, session and token kind; applies `costLeaveOut` |
+| `cost.py` | Token usage summed per day, project, session, model and source; applies `costLeaveOut` |
+| `web/cost-model.js` | Prices those rows into the cost section (local page and console alike) |
+| `cloud/src/cost.js` | The same rows, live from the console's database |
+| `fixtures/` | Made-up sample data for previews (`make_sample.py` regenerates it) |
 | `report.py` | Joins it all into the JSON the page renders |
 | `server.py` | Local server, security checks, background jobs |
 | `export.py` | Builds the read-only snapshot and the page without data |

@@ -20,7 +20,7 @@ import groups
 import mcp
 from actions import available_actions, trash_entries
 from ledger import ledger_rows
-from cost import CLOUD_PREFIX, build_cost, cloud_project_name, token_projects
+from cost import CLOUD_PREFIX, cloud_project_name, cost_meta, cost_rows, token_projects
 from usage import project_names, projects_summary, skill_sessions
 
 
@@ -199,7 +199,9 @@ def build_report(cfg, records, meta, sync_result):
                    for when, skill_id, event in recent],
         "skills": skills,
         "projects": projects_summary(events, names, lambda sid: rows[sid]["name"]),
-        "cost": build_cost(cfg, names, titles, now),
+        # Priced in the page (web/cost-model.js); online, live rows from the console replace these.
+        "costRows": (rows := cost_rows(cfg, titles)),
+        "costMeta": cost_meta(cfg, {r["p"]: names.get(r["p"], r["p"]) for r in rows}),
         "groups": _group_counts(groups.all_groups(cfg), skills),
         "updates": updates,
         "mcp": mcp_status,

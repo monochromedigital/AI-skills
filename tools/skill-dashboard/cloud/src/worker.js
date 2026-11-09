@@ -14,6 +14,7 @@
 // Upload handling is in ingest.js and cloud.js.
 
 import { cloudIngest, cloudPull } from "./cloud.js";
+import { costRows } from "./cost.js";
 import { ingest } from "./ingest.js";
 import { json, JSON_TYPE, NO_STORE } from "./shared.js";
 
@@ -88,6 +89,7 @@ export default {
       if (!(await viewer(request, env))) return json({ error: "Sign in through Cloudflare Access to see this data." }, 403);
       if (url.pathname === "/api/report") return report(url, env);
       if (url.pathname === "/api/machines") return machines(env);
+      if (url.pathname === "/api/cost-rows") return costRows(url, env);
       return json({ error: "not found" }, 404);
     }
 

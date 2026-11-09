@@ -31,7 +31,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 from actions import ACTIONS, ActionError
-from config import load_config
+from config import TOOL_DIR, load_config
 from inventory import build_inventory
 from ledger import sync
 from cloud_pull import pull as pull_cloud
@@ -40,6 +40,9 @@ from report import build_report
 CFG = load_config()
 TOKEN = secrets.token_urlsafe(32)
 TOKEN_PLACEHOLDER = "{{DASHBOARD_TOKEN}}"
+# --sample shows fixtures/sample-report.json (made-up, read-only) instead of this
+# machine's data: for previewing the page where there's no history, e.g. a cloud session.
+SAMPLE = TOOL_DIR / "fixtures" / "sample-report.json" if "--sample" in sys.argv else None
 TOKEN_HEADER = "X-Dashboard-Token"
 CONTENT_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
                  ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".json": "application/json"}
@@ -138,6 +141,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._static("index.html")
         if url.path.startswith("/web/"):
             return self._static(url.path[len("/web/"):])
+        if url.path == "/api/report" and SAMPLE:
+            return self._send(HTTPStatus.OK, json.loads(SAMPLE.read_text()))
         if url.path == "/api/report":
             refresh = parse_qs(url.query).get("refresh") == ["1"]
             result = sync(CFG)
@@ -154,6 +159,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def do_POST(self):
+        if SAMPLE:
+            return self._send(HTTPStatus.FORBIDDEN, {"error": "the sample is read-only"})
         if not self._host_ok() or not self._origin_ok():
             return self._send(HTTPStatus.FORBIDDEN, {"error": "unexpected host or origin"})
         if not secrets.compare_digest(self.headers.get(TOKEN_HEADER, ""), TOKEN):
@@ -175,7 +182,7 @@ def main():
     host, port = CFG["server"]["host"], CFG["server"]["port"]
     httpd = ThreadingHTTPServer((host, port), Handler)
     httpd.daemon_threads = True
-    print(f"Skills dashboard: http://{host}:{port}", flush=True)
+    print(f"Skills dashboard: http://{host}:{port}" + (" (sample data, read-only)" if SAMPLE else ""), flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

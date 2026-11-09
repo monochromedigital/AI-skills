@@ -26,7 +26,9 @@
       "web/api.js",
       "web/index.html",
       "web/pages/**",
-      "web/keep-place.js"
+      "web/keep-place.js",
+      "web/cost-model.js",
+      "web/calendar.js"
     ]
   },
   "maxComponentLines": 150,
