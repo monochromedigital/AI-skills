@@ -1,0 +1,102 @@
+{
+  "paths": {
+    "claudeHome": "~/.claude",
+    "dataDir": "~/.claude/skill-usage",
+    "repoSkills": "../../skills",
+    "repoDist": "../../dist"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 4477,
+    "inventoryCacheSeconds": 60,
+    "maxBodyBytes": 65536
+  },
+  "windows": {
+    "recentDays": 7,
+    "chartDays": 30,
+    "topSkills": 10,
+    "recentEvents": 25
+  },
+  "lock": {
+    "waitSeconds": 20
+  },
+  "synced": {
+    "skillPrefix": "anthropic-skills"
+  },
+  "updates": {
+    "checkRemote": true,
+    "timeoutSeconds": 6,
+    "cacheHours": 6,
+    "retryMinutes": 10,
+    "rawBase": "https://raw.githubusercontent.com",
+    "caBundles": ["/etc/ssl/cert.pem", "/opt/homebrew/etc/openssl@3/cert.pem", "/usr/local/etc/openssl@3/cert.pem"],
+    "upstream": {}
+  },
+  "cli": {
+    "claude": "claude",
+    "timeoutSeconds": 300
+  },
+  "mcp": {
+    "checkTimeoutSeconds": 120,
+    "loginTimeoutSeconds": 600,
+    "checkFromDir": "~"
+  },
+  "links": {
+    "accountSkills": "https://claude.ai/settings/capabilities"
+  },
+  "cloud": {
+    "ingestUrl": "https://monochrome-console.monochrome-digital.workers.dev",
+    "dataPath": "/api/report", "machinesPath": "/api/machines", "costRowsPath": "/api/cost-rows",
+    "chunkBytes": 400000,
+    "timeoutSeconds": 60
+  },
+  "ui": {
+    "pollMilliseconds": 1000,
+    "dropdownSearchMin": 8,
+    "newBadgeDays": 7,
+    "recentlyAdded": 8,
+    "sessionsPerSkill": 8,
+    "costSessions": 12,
+    "costProjects": 12
+  },
+  "plan": { "monthlyFee": 100, "note": "What you pay for your Claude plan each month, to compare against API-price cost." },
+  "costLeaveOut": {
+    "label": "Crackwits client work",
+    "paths": ["~/Desktop/Code/CRK"],
+    "why": "Crackwits pays for that Claude Code use. Skill uses there still count; only token cost is left out, and those token rows are never uploaded."
+  },
+  "pricing": {
+    "currency": "USD",
+    "asOf": "2026-10-06",
+    "source": "Anthropic API list prices per million tokens (claude-api skill model table and prompt-caching guide)",
+    "cacheWriteMultiplier": { "5m": 1.25, "1h": 2.0 },
+    "models": {
+      "claude-opus-5-5":   { "input": 4.0,  "output": 20.0, "cacheRead": 0.20 },
+      "claude-opus-5":     { "input": 5.0,  "output": 25.0, "cacheRead": 0.50 },
+      "claude-opus-4-8":   { "input": 5.0,  "output": 25.0, "cacheRead": 0.50 },
+      "claude-opus-4-7":   { "input": 5.0,  "output": 25.0, "cacheRead": 0.50 },
+      "claude-opus-4-6":   { "input": 5.0,  "output": 25.0, "cacheRead": 0.50 },
+      "claude-fable-5-1":  { "input": 10.0, "output": 50.0, "cacheRead": 0.25 },
+      "claude-fable-5":    { "input": 10.0, "output": 50.0, "cacheRead": 1.00 },
+      "claude-sonnet-5-5": { "input": 2.0,  "output": 10.0, "cacheRead": 0.20 },
+      "claude-sonnet-5":   { "input": 2.0,  "output": 10.0, "cacheRead": 0.20 },
+      "claude-sonnet-4-6": { "input": 3.0,  "output": 15.0, "cacheRead": 0.30 },
+      "claude-haiku-5-5":  { "input": 0.10, "output": 0.50, "cacheRead": 0.01 },
+      "claude-haiku-4-5":  { "input": 1.0,  "output": 5.0,  "cacheRead": 0.10 }
+    },
+    "free": ["<synthetic>"]
+  },
+  "groupsOther": "Other",
+  "groups": [
+    { "id": "seo", "name": "SEO", "match": ["*seo*", "schema", "site-architecture", "site-check", "sitemap-ia-board", "directory-submissions"] },
+    { "id": "animation", "name": "Animation", "match": ["animat*", "*-animation*", "ask-sonner"] },
+    { "id": "figma", "name": "Figma", "match": ["figma:*"] },
+    { "id": "shopify", "name": "Shopify", "match": ["shopify-*", "ucp"] },
+    { "id": "vercel", "name": "Vercel & Next.js", "match": ["vercel:*"] },
+    { "id": "frontend", "name": "Front-end & design", "match": ["frontend-design:*", "impeccable", "design-*", "ui-*", "apple-design", "atomic-design", "emil-design-eng", "psychology-of-design", "banner-design", "canvas-design", "algorithmic-art", "break-ui", "prototype", "pick-ui-library", "mobile-native", "scroll-*", "threejs-scene", "a11y-audit:*", "write-swift", "brand", "website-assessment", "engineering-skills:epic-design", "engineering-skills:senior-frontend"] },
+    { "id": "engineering", "name": "Engineering", "match": ["engineering-skills:*", "engineering-advanced-skills:*", "claude-code-setup:*"] },
+    { "id": "marketing", "name": "Marketing & growth", "match": ["ab-testing", "ad-creative", "ads", "analytics", "aso", "attribution", "churn-prevention", "co-marketing", "cold-email", "community-marketing", "competitor*", "content-*", "copy*", "cro", "customer-research", "emails", "free-tools", "influencer-marketing", "launch", "lead-magnets", "marketing-*", "offers", "onboarding", "paywalls", "popups", "pricing", "product-marketing", "prospecting", "public-relations", "referrals", "revops", "sales-enablement", "signup", "sms", "social", "image", "video"] },
+    { "id": "workflow", "name": "Claude workflow", "match": ["task-observer", "graphify", "claude-mem:*", "linear-*", "anthropic-skills:skill-creator", "anthropic-skills:import-memory", "update-config", "fewer-permission-prompts", "claude-in-chrome", "artifact-*", "dataviz"] },
+    { "id": "documents", "name": "Documents & slides", "match": ["anthropic-skills:*", "slides"] }
+  ]
+}

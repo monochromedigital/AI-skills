@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+.dev.vars
+# built by build_site.py from ../web on every deploy
+public/

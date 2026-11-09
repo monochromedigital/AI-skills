@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "skill-dashboard",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "tools/skill-dashboard/server.py"
+      ],
+      "port": 4477
+    },
+    {
+      "name": "skill-dashboard-sample",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "tools/skill-dashboard/server.py",
+        "--sample"
+      ],
+      "port": 4477
+    }
+  ]
+}
