@@ -31,7 +31,8 @@ export function TrashPanel(report, onAction) {
 export function Coverage(report) {
   const c = report.coverage;
   const notes = [];
-  if (c.since) notes.push(fill(COPY.page.coverage, { since: day(c.since), transcripts: number(c.transcripts) }));
+  const macs = report.combined ? new Intl.ListFormat(undefined, { type: "conjunction" }).format(report.combined.names) : null;
+  if (c.since) notes.push(fill(macs ? COPY.page.coverageCombined : COPY.page.coverage, { since: day(c.since), transcripts: number(c.transcripts), macs }));
   if (!c.remoteEnabled) notes.push(COPY.page.remoteOff);
   const failed = Object.keys(c.remoteErrors || {}).length;
   if (failed) notes.push(fill(COPY.page.remoteFailed, { count: failed }));

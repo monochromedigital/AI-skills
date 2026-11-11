@@ -79,6 +79,35 @@ def _group_counts(all_groups, skills):
     return [{**g, "skills": count[g["id"]], "uses": uses[g["id"]]} for g in all_groups]
 
 
+USE_COUNTS = ("uses", "usesRecent", "viaModel", "viaSlash", "viaSubagent")
+
+
+def _tally(events, recent_from, previous_from, chart_from):
+    """Use counts per skill, total uses by period, and uses per local day since chart_from."""
+    counts, totals, daily = defaultdict(Counter), Counter(invocations=0, invocationsRecent=0, invocationsPrevious=0), Counter()
+    for when, skill_id, event in events:
+        c = counts[skill_id]
+        c["uses"] += 1
+        c["viaModel" if event.get("via") == "model" else "viaSlash"] += 1
+        c["viaSubagent"] += 1 if event.get("subagent") else 0
+        totals["invocations"] += 1
+        if when >= recent_from:
+            c["usesRecent"] += 1
+            totals["invocationsRecent"] += 1
+        elif when >= previous_from:
+            totals["invocationsPrevious"] += 1
+        if (day := when.astimezone().date()) >= chart_from:
+            daily[day] += 1
+    return counts, totals, daily
+
+
+def _cloud_share(events, periods):
+    """The counts that came from cloud sessions, in the shape the report gives them."""
+    counts, totals, daily = _tally([e for e in events if (e[2].get("project") or "").startswith(CLOUD_PREFIX)], *periods)
+    return {"skills": {sid: dict(c) for sid, c in counts.items()}, "kpis": dict(totals),
+            "daily": {d.isoformat(): n for d, n in daily.items()}}
+
+
 def build_report(cfg, records, meta, sync_result):
     win = cfg["windows"]
     now = datetime.now(timezone.utc)
@@ -106,18 +135,13 @@ def build_report(cfg, records, meta, sync_result):
         if when:
             events.append((when, skill_id, event))
 
-    stats = defaultdict(lambda: {"uses": 0, "usesRecent": 0, "viaModel": 0, "viaSlash": 0, "viaSubagent": 0,
-                                 "byProject": Counter(), "bySession": Counter(), "sessionLast": {},
-                                 "first": None, "last": None})
+    stats = defaultdict(lambda: {"byProject": Counter(), "bySession": Counter(), "sessionLast": {}, "first": None, "last": None})
     session_project = {}
-    daily = Counter()
     chart_from = (now - timedelta(days=win["chartDays"] - 1)).astimezone().date()
-    recent_count = previous_count = 0
+    periods = (recent_from, previous_from, chart_from)
+    counts, totals, daily = _tally(events, *periods)
     for when, skill_id, event in events:
         s = stats[skill_id]
-        s["uses"] += 1
-        s["viaModel" if event.get("via") == "model" else "viaSlash"] += 1
-        s["viaSubagent"] += 1 if event.get("subagent") else 0
         if event.get("project"):
             s["byProject"][event["project"]] += 1
         sid = event.get("session")
@@ -127,14 +151,6 @@ def build_report(cfg, records, meta, sync_result):
             session_project.setdefault(sid, event.get("project"))
         s["first"] = min(s["first"] or when, when)
         s["last"] = max(s["last"] or when, when)
-        if when >= recent_from:
-            s["usesRecent"] += 1
-            recent_count += 1
-        elif when >= previous_from:
-            previous_count += 1
-        local_day = when.astimezone().date()
-        if local_day >= chart_from:
-            daily[local_day] += 1
 
     names = project_names({e.get("project") for _, _, e in events} | token_projects(cfg))
     names.update({path: cloud_project_name(path) for path in names if path and path.startswith(CLOUD_PREFIX)})
@@ -150,11 +166,7 @@ def build_report(cfg, records, meta, sync_result):
             "group": group_of(skill_id),
             "byProject": dict(s["byProject"]) if s else {},
             "sessions": skill_sessions(s["bySession"], s["sessionLast"], session_project, titles, names, per_skill) if s else [],
-            "uses": s["uses"] if s else 0,
-            "usesRecent": s["usesRecent"] if s else 0,
-            "viaModel": s["viaModel"] if s else 0,
-            "viaSlash": s["viaSlash"] if s else 0,
-            "viaSubagent": s["viaSubagent"] if s else 0,
+            **{k: counts[skill_id][k] for k in USE_COUNTS},
             "projects": len(s["byProject"]) if s else 0,
             "firstUsed": s["first"].isoformat() if s else None,
             "lastUsed": s["last"].isoformat() if s else None,
@@ -184,9 +196,7 @@ def build_report(cfg, records, meta, sync_result):
             "used": sum(1 for x in installed if x["uses"]),
             "unused": sum(1 for x in installed if not x["uses"]),
             "builtinUsed": sum(1 for x in skills if x["source"] == "builtin" and x["uses"]),
-            "invocations": len(events),
-            "invocationsRecent": recent_count,
-            "invocationsPrevious": previous_count,
+            **totals,
             "updates": sum(1 for u in updates if u["status"] == "update"),
             "mcpTotal": len(servers),
             "mcpAttention": sum(1 for s in servers if s["status"] != "connected"),
@@ -202,6 +212,9 @@ def build_report(cfg, records, meta, sync_result):
         # Priced in the page (web/cost-model.js); online, live rows from the console replace these.
         "costRows": (rows := cost_rows(cfg, titles)),
         "costMeta": cost_meta(cfg, {r["p"]: names.get(r["p"], r["p"]) for r in rows}),
+        # The cloud sessions' part of the counts above. Every Mac pulls the same cloud
+        # sessions, so web/combine.js keeps them from one Mac when it adds Macs together.
+        "cloudShare": _cloud_share(events, periods),
         "groups": _group_counts(groups.all_groups(cfg), skills),
         "updates": updates,
         "mcp": mcp_status,

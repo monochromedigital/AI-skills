@@ -3,6 +3,7 @@
 // The published snapshot has no server: its page names a data file instead,
 // and the report inside says readOnly, which hides every action.
 
+import { ALL_MACHINES, combineReports } from "./combine.js";
 import { buildCost } from "./cost-model.js";
 
 const meta = (name) => document.querySelector(`meta[name="${name}"]`)?.content;
@@ -37,11 +38,18 @@ async function withCost(report) {
   return { ...report, costLive: Boolean(live), cost: buildCost(live ?? report.costRows ?? [], report.costMeta, localToday()) };
 }
 
-export async function fetchReport(refresh = false, machine = null) {
+async function rawReport(refresh, machine) {
   const snapshot = SNAPSHOT_DATA && machine ? `${SNAPSHOT_DATA}?machine=${encodeURIComponent(machine)}` : SNAPSHOT_DATA;
   const response = await fetch(snapshot ?? `/api/report${refresh ? "?refresh=1" : ""}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return withCost(await response.json());
+  return response.json();
+}
+
+/** One Mac's report, or every Mac's added together when `machine` is ALL_MACHINES; priced either way. */
+export async function fetchReport(refresh = false, machine = null) {
+  if (machine !== ALL_MACHINES) return withCost(await rawReport(refresh, machine));
+  const machines = await fetchMachines();
+  return withCost(combineReports(await Promise.all(machines.map((m) => rawReport(false, m.id))), machines));
 }
 
 /** The Macs that have uploaded a snapshot, newest sync first; empty when there is no list to read. */

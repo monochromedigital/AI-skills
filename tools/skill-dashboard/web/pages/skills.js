@@ -6,12 +6,14 @@ import { Coverage, RecentPanel, TrashPanel } from "../features/dashboard/activit
 import { McpPanel, UpdatesPanel } from "../features/dashboard/attention.js";
 import { ProjectsPanel, RecentlyAddedPanel } from "../features/dashboard/library.js";
 import { KpiRow } from "../features/dashboard/summary.js";
-import { h } from "../ui.js";
+import { COPY } from "../content.js";
+import { h, Text } from "../ui.js";
 
 export function SkillsPage(report, { table, bulk, onAction, mcpChecking, showProject, openDetail }) {
   return [
     KpiRow(report),
-    h("div", { class: "band" }, UpdatesPanel(report, onAction), McpPanel(report, onAction, mcpChecking)),
+    report.combined ? Text({ text: COPY.page.perMac, tone: "muted", as: "p" })
+      : h("div", { class: "band" }, UpdatesPanel(report, onAction), McpPanel(report, onAction, mcpChecking)),
     h("div", { class: "band" }, ProjectsPanel(report, showProject), RecentlyAddedPanel(report, openDetail),
       RecentPanel(report), TrashPanel(report, onAction)),
     table,

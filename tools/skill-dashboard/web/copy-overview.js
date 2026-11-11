@@ -5,7 +5,8 @@ export const OVERVIEW_COPY = {
   nav: { label: "Pages", overview: "Overview", skills: "Skills" },
   views: {
     overview: { title: "Overview", lede: "What your Claude Code work would cost at API prices, and a snapshot of your skills." },
-    skills: { title: "Skills", lede: "Every skill on this Mac, how often Claude reaches for it, and the tools to manage them." },
+    skills: { title: "Skills", lede: "Every skill on this Mac, how often Claude reaches for it, and the tools to manage them.",
+      ledeCombined: "Every skill on your Macs and how often Claude reaches for it. Pick one Mac to manage them." },
   },
   costKpi: {
     week: { label: "Last {days} days", up: "+{delta} on the {days} days before", down: "−{delta} on the {days} days before", flat: "Same as the {days} days before" },

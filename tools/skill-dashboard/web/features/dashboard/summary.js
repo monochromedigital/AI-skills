@@ -20,9 +20,10 @@ export function KpiRow(report) {
       sub: fill(trend, { delta: number(Math.abs(delta)), days }) }),
     StatTile({ label: COPY.kpi.total.label, value: number(k.invocations),
       sub: report.coverage.since ? fill(COPY.kpi.total.sub, { since: day(report.coverage.since) }) : null }),
-    StatTile({ label: COPY.kpi.updates.label, value: number(k.updates), tone: k.updates ? "warning" : null,
+    // Updates and MCP belong to one Mac, so the All Macs view leaves them out.
+    report.combined ? null : StatTile({ label: COPY.kpi.updates.label, value: number(k.updates), tone: k.updates ? "warning" : null,
       sub: k.updates ? COPY.kpi.updates.subSome : COPY.kpi.updates.subNone }),
-    StatTile({ label: COPY.kpi.mcp.label, value: report.mcp ? number(k.mcpTotal) : COPY.table.never, sub: mcpSub }));
+    report.combined ? null : StatTile({ label: COPY.kpi.mcp.label, value: report.mcp ? number(k.mcpTotal) : COPY.table.never, sub: mcpSub }));
 }
 
 export function UsagePanel(report) {

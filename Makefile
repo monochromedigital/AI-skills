@@ -43,6 +43,8 @@ check:
 	@for f in skills/*/scripts/*.py scripts/*.py; do \
 	  python3 -c "import ast,sys;ast.parse(open('$$f').read())" || exit 1; done
 	@echo "  all parse"
+	@echo "== dashboard: All Macs merge =="
+	@node tools/skill-dashboard/tests/combine.test.mjs
 	@echo "== agencies installed =="
 	@cd $(A) && python3 scripts/brandkit.py
 
