@@ -28,7 +28,8 @@
       "web/pages/**",
       "web/keep-place.js",
       "web/cost-model.js",
-      "web/calendar.js"
+      "web/calendar.js",
+      "web/combine.js"
     ]
   },
   "maxComponentLines": 150,

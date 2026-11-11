@@ -251,11 +251,21 @@ created on the first sync). On the other Mac:
 5. **Optional:** the session-start hook below, so nothing is lost to the
    30-day transcript cleanup.
 
-The console opens on the Mac that synced most recently. Once a second Mac has
-uploaded a snapshot, a **Mac** picker appears in the header, listing each Mac
-with its last sync; choosing one loads that Mac's snapshot. The list comes from
-`/api/machines` (behind the same sign-in), and the page only reads it online,
-so the local dashboard never shows the picker.
+The console opens on the Mac that synced most recently. A **Mac** picker in the
+header lists **All Macs** and then each Mac with its last sync; choosing a Mac
+loads that Mac's snapshot. The list comes from `/api/machines` (behind the same
+sign-in), and the page only reads it online, so the local dashboard never shows
+the picker.
+
+**All Macs** fetches every Mac's snapshot and adds them up in the page
+(`web/combine.js`). Each Mac's own sessions add up exactly. Cloud sessions are
+pulled by every Mac, so each report carries a `cloudShare` (the cloud part of
+its counts, from `report.py`) and the combined view keeps cloud usage from the
+first Mac only. What a Mac has installed doesn't add up across Macs, so in this
+view the Updates and MCP panels, their tiles and the trash are hidden, with a
+note to pick one Mac. Cost totals appear only when every Mac's snapshot has
+cost data, never a total covering some of them. `make check` runs
+`tests/combine.test.mjs` against these rules.
 
 ## Where the data lives
 
@@ -317,6 +327,7 @@ days that happened while the page was never opened.
 | `actions.py` | The page's actions (single, bulk, groups), each re-checked against a fresh listing |
 | `cost.py` | Token usage summed per day, project, session, model and source; applies `costLeaveOut` |
 | `web/cost-model.js` | Prices those rows into the cost section (local page and console alike) |
+| `web/combine.js` | Adds every Mac's snapshot into one report for the console's All Macs view |
 | `cloud/src/cost.js` | The same rows, live from the console's database |
 | `fixtures/` | Made-up sample data for previews (`make_sample.py` regenerates it) |
 | `report.py` | Joins it all into the JSON the page renders |

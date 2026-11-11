@@ -3,6 +3,7 @@
 // handled in handlers.js; nothing below this file talks to the server.
 
 import { fetchMachines, fetchReport } from "./api.js";
+import { ALL_MACHINES } from "./combine.js";
 import { COPY, fill } from "./content.js";
 import { BulkBar, planBulk } from "./features/dashboard/bulk.js";
 import { SkillDetail } from "./features/dashboard/detail.js";
@@ -124,7 +125,9 @@ function openDetail(skill) {
 const costHandlers = { onPick: (path) => showProject(path), onPeriod: (id) => { state.costPeriod = id; render(); } };
 
 // ── layout ──
-const Header = () => Masthead({ view: state.view, report: state.report, loading: state.loading, machines: state.machines,
+// "All Macs" leads the list whenever the console has any Mac to show.
+const machineChoices = () => (state.machines.length ? [{ id: ALL_MACHINES, name: COPY.page.allMachines }, ...state.machines] : []);
+const Header = () => Masthead({ view: state.view, report: state.report, loading: state.loading, machines: machineChoices(),
   nav: Object.entries(ROUTES).map(([view, href]) => ({ href, label: COPY.nav[view], current: view === state.view })),
   onMachine: (id) => { state.machine = id; load(); },
   onRefresh: () => load(), onCheckUpdates: () => load({ refresh: true }) });
